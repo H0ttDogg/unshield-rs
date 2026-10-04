@@ -19,9 +19,11 @@ if(NOT TARGET unshield::libunshield)
                 IMPORTED_IMPLIB "@PACKAGE_CMAKE_INSTALL_LIBDIR@/unshield.dll.lib"
                 INTERFACE_COMPILE_DEFINITIONS UNSHIELD_DYNAMIC_LIBRARY)
         elseif(APPLE)
-            set_target_properties(unshield::libunshield PROPERTIES IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/libunshield.1.dylib")
+            set_target_properties(unshield::libunshield PROPERTIES IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/libunshield.1.dylib"
+                IMPORTED_SONAME "@rpath/libunshield.1.dylib")
         else()
-            set_target_properties(unshield::libunshield PROPERTIES IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/libunshield.so.1")
+            set_target_properties(unshield::libunshield PROPERTIES IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/libunshield.so.1"
+                IMPORTED_SONAME "libunshield.so.1")
         endif()
     endif()
     set_target_properties(unshield::libunshield PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
