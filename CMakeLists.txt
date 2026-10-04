@@ -125,7 +125,9 @@ if(TEST_UPSTREAM_CLI)
     if(NOT EXISTS "${UPSTREAM}/src/unshield.c")
         message(FATAL_ERROR "Fetch the pinned upstream revision using scripts/fetch-upstream first")
     endif()
-    add_executable(unshield_c "${UPSTREAM}/src/unshield.c")
+    # Upstream includes errno.h only with iconv enabled, although its glibc
+    # extraction path also uses errno. Supply it without modifying the source.
+    add_executable(unshield_c tests/upstream_cli.c)
     target_link_libraries(unshield_c PRIVATE libunshield)
     target_compile_definitions(unshield_c PRIVATE SIZE_FORMAT="zi")
     if(MSVC)
