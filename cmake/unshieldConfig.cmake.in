@@ -1,0 +1,28 @@
+@PACKAGE_INIT@
+if(NOT TARGET unshield::libunshield)
+    if(@BUILD_STATIC@)
+        add_library(unshield::libunshield STATIC IMPORTED)
+        if(WIN32)
+            set_target_properties(unshield::libunshield PROPERTIES IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/unshield.lib"
+                INTERFACE_LINK_LIBRARIES "kernel32;ntdll;userenv;ws2_32;dbghelp;bcrypt;advapi32")
+        elseif(APPLE)
+            set_target_properties(unshield::libunshield PROPERTIES IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/libunshield.a"
+                INTERFACE_LINK_LIBRARIES "-framework Security;-framework SystemConfiguration;resolv")
+        else()
+            set_target_properties(unshield::libunshield PROPERTIES IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/libunshield.a"
+                INTERFACE_LINK_LIBRARIES "dl;pthread;m;rt;util")
+        endif()
+    else()
+        add_library(unshield::libunshield SHARED IMPORTED)
+        if(WIN32)
+            set_target_properties(unshield::libunshield PROPERTIES IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_BINDIR@/unshield.dll"
+                IMPORTED_IMPLIB "@PACKAGE_CMAKE_INSTALL_LIBDIR@/unshield.dll.lib"
+                INTERFACE_COMPILE_DEFINITIONS UNSHIELD_DYNAMIC_LIBRARY)
+        elseif(APPLE)
+            set_target_properties(unshield::libunshield PROPERTIES IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/libunshield.1.dylib")
+        else()
+            set_target_properties(unshield::libunshield PROPERTIES IMPORTED_LOCATION "@PACKAGE_CMAKE_INSTALL_LIBDIR@/libunshield.so.1")
+        endif()
+    endif()
+    set_target_properties(unshield::libunshield PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+endif()

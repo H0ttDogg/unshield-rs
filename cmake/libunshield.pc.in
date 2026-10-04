@@ -1,0 +1,10 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}/@CMAKE_INSTALL_BINDIR@
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: libunshield
+Description: Rust implementation of the libunshield C API
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -lunshield
+Cflags: -I${includedir}

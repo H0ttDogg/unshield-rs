@@ -1,0 +1,6 @@
+/target/
+/.tools/
+/test-data/
+/upstream/
+/build/
+*.pdb

@@ -1,0 +1,36 @@
+name: Port validation
+on: [push, pull_request]
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Fetch pinned upstream test corpus
+        shell: bash
+        run: sh scripts/fetch-upstream.sh
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test -- --include-ignored
+      - run: cmake -S . -B build -DTEST_UPSTREAM_CLI=ON
+      - run: cmake --build build --config Release
+      - run: ctest --test-dir build -C Release --output-on-failure
+      - run: cmake --install build --config Release --prefix install
+      - run: cmake -S tests/installed -B build-consumer -DCMAKE_PREFIX_PATH=${{ github.workspace }}/install
+      - run: cmake --build build-consumer --config Release
+      - name: Run installed C consumer
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = Windows ]; then
+            build-consumer/Release/consumer.exe build/c-fixtures
+          else
+            build-consumer/consumer build/c-fixtures
+          fi
+      - run: cmake -S . -B build-static -DBUILD_STATIC=ON -DBUILD_CLI=OFF -DTEST_UPSTREAM_CLI=ON
+      - run: cmake --build build-static --config Release
+      - run: ctest --test-dir build-static -C Release --output-on-failure
