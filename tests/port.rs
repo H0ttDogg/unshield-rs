@@ -220,7 +220,7 @@ fn empty_compressed_member_is_valid() {
 }
 
 #[test]
-fn volume_and_member_offsets_above_four_gib_are_not_truncated() {
+fn large_volume_and_member_offsets_are_not_truncated_or_used_as_sentinels() {
     use std::{
         io::{self, Read, Seek, SeekFrom},
         path::{Path, PathBuf},
@@ -291,10 +291,19 @@ fn volume_and_member_offsets_above_four_gib_are_not_truncated() {
             }
         }
     }
-    for flags in [0, 1] {
+    for (flags, offset) in [
+        (0, (1u64 << 32) + 0x100),
+        (1, (1u64 << 32) + 0x100),
+        (1, 0x7fff_ffff),
+    ] {
         let mut f = fixture(6, flags);
-        let offset = (1u64 << 32) + 0x100;
         u64at(&mut f.header, 0x540 + 18, offset);
+        // Member one is last, but not first, in this volume. Its boundary offset
+        // must be honored even when it equals the old C missing-offset sentinel.
+        u32at(&mut f.header, 0x128, 2);
+        let record = f.header[0x540..0x597].to_vec();
+        f.header[0x597..0x5ee].copy_from_slice(&record);
+        u32at(&mut f.cabinet, 32, 1);
         u64at(&mut f.cabinet, 36, offset);
         u64at(&mut f.cabinet, 60, offset);
         let expected = f.payload.clone();
@@ -305,7 +314,7 @@ fn volume_and_member_offsets_above_four_gib_are_not_truncated() {
             offset,
         });
         let a = Archive::open_with("data1.cab", None, io).unwrap();
-        assert_eq!(a.files()[0].data_offset, offset);
-        assert_eq!(a.extract(0, Compression::New).unwrap(), expected);
+        assert_eq!(a.files()[1].data_offset, offset);
+        assert_eq!(a.extract(1, Compression::New).unwrap(), expected);
     }
 }

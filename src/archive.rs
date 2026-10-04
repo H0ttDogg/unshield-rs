@@ -320,7 +320,7 @@ struct Volume {
     first_offset: u64,
     first_expanded: u64,
     first_compressed: u64,
-    last_offset: u64,
+    last_offset: Option<u64>,
     last_expanded: u64,
     last_compressed: u64,
 }
@@ -340,8 +340,8 @@ fn volume_header(input: &mut dyn ReadSeek, major: u32) -> Result<Volume> {
             first_expanded: b.u32(40)? as u64,
             first_compressed: b.u32(44)? as u64,
             last_offset: match b.u32(48)? {
-                0 => 0x7fff_ffff,
-                v => v as u64,
+                0 => None,
+                v => Some(v as u64),
             },
             last_expanded: b.u32(52)? as u64,
             last_compressed: b.u32(56)? as u64,
@@ -353,7 +353,7 @@ fn volume_header(input: &mut dyn ReadSeek, major: u32) -> Result<Volume> {
             first_offset: b.u64(36)?,
             first_expanded: b.u64(44)?,
             first_compressed: b.u64(52)?,
-            last_offset: b.u64(60)?,
+            last_offset: Some(b.u64(60)?),
             last_expanded: b.u64(68)?,
             last_compressed: b.u64(76)?,
         })
@@ -482,9 +482,9 @@ impl<'a> Payload<'a> {
     fn set_segment(&mut self, vh: Volume) -> Result<()> {
         let compressed = self.file.flags & FILE_COMPRESSED != 0;
         let (offset, bytes) = if self.split {
-            if self.index as u32 == vh.last && vh.last_offset != 0x7fff_ffff {
+            if let Some(offset) = vh.last_offset.filter(|_| self.index as u32 == vh.last) {
                 (
-                    vh.last_offset,
+                    offset,
                     if compressed {
                         vh.last_compressed
                     } else {

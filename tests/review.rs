@@ -234,11 +234,19 @@ fn native_lookup_does_not_conflate_non_utf8_filenames() {
     use std::os::unix::ffi::OsStrExt;
     use unshield::io::{CabinetIo, NativeIo};
     let dir = TempDir::new();
-    fs::write(
+    let created = fs::write(
         dir.0.join(std::ffi::OsStr::from_bytes(b"\xffDATA1.CAB")),
         b"wrong",
-    )
-    .unwrap();
+    );
+    // macOS filesystems can reject non-UTF-8 names before lookup is possible.
+    // Only that specific limitation skips this case; all other I/O errors fail.
+    if created
+        .as_ref()
+        .is_err_and(|e| e.raw_os_error() == Some(libc::EILSEQ))
+    {
+        return;
+    }
+    created.unwrap();
     assert!(NativeIo
         .find(&dir.0.join(std::ffi::OsStr::from_bytes(b"\xfeDATA1.CAB")))
         .is_err());

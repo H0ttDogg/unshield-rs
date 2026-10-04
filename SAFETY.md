@@ -65,6 +65,8 @@ output truncation/deletion on failure, mutable-C-record aliasing, overlapping
 deobfuscation arguments, insufficient metadata bounds/allocation limits, trailing
 compressed data acceptance, empty legacy member handling, lossy native filename
 lookup, overlapping group selection, and pkg-config installation/linking metadata.
+The final volume review also removed a legacy sentinel collision with a valid
+split-member offset in newer cabinets; sparse-file tests cover that boundary.
 
 Regression tests are in `tests/review.rs`. The original generated CAB tests,
 610 upstream manifest hashes, historical traversal fixture, compiled C ABI
