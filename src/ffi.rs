@@ -4,7 +4,10 @@
 //! correctly aligned objects of the declared type. Strings must be NUL terminated.
 //! Handles and borrowed strings/structs live until `unshield_close`; the caller must
 //! synchronize access and must not free returned pointers. Callback userdata must
-//! outlive the handle. These are the same ownership requirements as libunshield.
+//! outlive the handle. Callbacks must obey the corresponding C stdio/dirent
+//! contracts, must not retain temporary buffers, unwind, or close/re-enter a
+//! handle while it is in use. Returned strings are read-only. Group records may
+//! be edited between calls; replacement name pointers must remain valid C strings.
 #![allow(clippy::missing_safety_doc)]
 
 use crate::{
@@ -12,6 +15,7 @@ use crate::{
     Archive, Compression, Error, Result,
 };
 use std::{
+    cell::UnsafeCell,
     ffi::{c_char, c_int, c_long, c_uint, c_void, CStr, CString},
     io::{self, Read, Seek, SeekFrom, Write},
     panic::{catch_unwind, AssertUnwindSafe},
@@ -57,8 +61,8 @@ pub struct Unshield {
     file_names: Vec<CString>,
     directory_names: Vec<CString>,
     component_names: Vec<CString>,
-    group_names: Vec<CString>,
-    groups: Vec<UnshieldFileGroup>,
+    _group_names: Vec<CString>,
+    groups: Vec<UnsafeCell<UnshieldFileGroup>>,
 }
 static LOG_LEVEL: AtomicI32 = AtomicI32::new(4);
 fn boundary<T: Copy>(fallback: T, f: impl FnOnce() -> Result<T>) -> T {
@@ -66,13 +70,16 @@ fn boundary<T: Copy>(fallback: T, f: impl FnOnce() -> Result<T>) -> T {
         Ok(Ok(v)) => v,
         Ok(Err(e)) => {
             if LOG_LEVEL.load(Ordering::Relaxed) >= 1 {
-                eprintln!("unshield: {e}");
+                let _ = writeln!(io::stderr().lock(), "unshield: {e}");
             }
             fallback
         }
         Err(_) => {
             if LOG_LEVEL.load(Ordering::Relaxed) >= 1 {
-                eprintln!("unshield: internal panic caught at C boundary");
+                let _ = writeln!(
+                    io::stderr().lock(),
+                    "unshield: internal panic caught at C boundary"
+                );
             }
             fallback
         }
@@ -141,10 +148,12 @@ fn make_handle(archive: Archive) -> Result<*mut Unshield> {
         .file_groups
         .iter()
         .zip(&group_names)
-        .map(|(g, n)| UnshieldFileGroup {
-            name: n.as_ptr(),
-            first_file: g.first_file,
-            last_file: g.last_file,
+        .map(|(g, n)| {
+            UnsafeCell::new(UnshieldFileGroup {
+                name: n.as_ptr(),
+                first_file: g.first_file,
+                last_file: g.last_file,
+            })
         })
         .collect();
     Ok(Box::into_raw(Box::new(Unshield {
@@ -152,7 +161,7 @@ fn make_handle(archive: Archive) -> Result<*mut Unshield> {
         file_names,
         directory_names,
         component_names,
-        group_names,
+        _group_names: group_names,
         groups,
     })))
 }
@@ -259,7 +268,18 @@ macro_rules! name {
 name!(unshield_file_name, file_names);
 name!(unshield_directory_name, directory_names);
 name!(unshield_component_name, component_names);
-name!(unshield_file_group_name, group_names);
+#[no_mangle]
+pub unsafe extern "C" fn unshield_file_group_name(p: *mut Unshield, i: c_int) -> *const c_char {
+    boundary(ptr::null(), || {
+        let h = unsafe { handle(p) }?;
+        let group = h
+            .groups
+            .get(index(i)?)
+            .ok_or(Error::InvalidIndex(i as usize))?;
+        // SAFETY: callers synchronize access to the mutable C records.
+        Ok(unsafe { (*group.get()).name })
+    })
+}
 #[no_mangle]
 pub unsafe extern "C" fn unshield_file_group_get(
     p: *mut Unshield,
@@ -269,7 +289,8 @@ pub unsafe extern "C" fn unshield_file_group_get(
         let h = unsafe { handle(p) }?;
         Ok(h.groups
             .get(index(i)?)
-            .ok_or(Error::InvalidIndex(i as usize))? as *const _ as *mut _)
+            .ok_or(Error::InvalidIndex(i as usize))?
+            .get())
     })
 }
 #[no_mangle]
@@ -283,10 +304,15 @@ pub unsafe extern "C" fn unshield_file_group_find(
         }
         let name = unsafe { CStr::from_ptr(name) };
         let h = unsafe { handle(p) }?;
-        Ok(h.group_names
-            .iter()
-            .position(|n| n.as_c_str() == name)
-            .map_or(ptr::null_mut(), |i| &h.groups[i] as *const _ as *mut _))
+        for group in &h.groups {
+            // SAFETY: UnsafeCell permits C mutations between calls. The caller
+            // keeps any replacement name alive and synchronizes access.
+            let current = unsafe { (*group.get()).name };
+            if !current.is_null() && unsafe { CStr::from_ptr(current) } == name {
+                return Ok(group.get());
+            }
+        }
+        Ok(ptr::null_mut())
     })
 }
 #[no_mangle]
@@ -364,10 +390,14 @@ pub unsafe extern "C" fn unshield_deobfuscate(buffer: *mut u8, size: usize, seed
         if buffer.is_null() || seed.is_null() || size > isize::MAX as usize {
             return Err(crate::error::invalid("invalid deobfuscation buffer"));
         }
+        // The C implementation copies the seed before touching the buffer.
+        // Do the same: buffer and seed may overlap without aliasing Rust &muts.
+        let mut state = unsafe { seed.read() };
         crate::deobfuscate(
             unsafe { std::slice::from_raw_parts_mut(buffer, size) },
-            unsafe { &mut *seed },
+            &mut state,
         );
+        unsafe { seed.write(state) };
         Ok(())
     });
 }
@@ -435,10 +465,13 @@ impl CabinetIo for CallbackIo {
                 break;
             }
             #[cfg(unix)]
-            let name = unsafe { CStr::from_ptr((*(entry as *const libc::dirent)).d_name.as_ptr()) };
+            let name = unsafe {
+                CStr::from_ptr(ptr::addr_of!((*(entry as *const libc::dirent)).d_name).cast())
+            };
             #[cfg(windows)]
-            let name =
-                unsafe { CStr::from_ptr((*(entry as *const WindowsDirent)).d_name.as_ptr()) };
+            let name = unsafe {
+                CStr::from_ptr(ptr::addr_of!((*(entry as *const WindowsDirent)).d_name).cast())
+            };
             if name.to_bytes().eq_ignore_ascii_case(desired.to_bytes()) {
                 return Ok(parent.join(narrow_path(name.to_bytes())?));
             }

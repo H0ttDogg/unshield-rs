@@ -34,6 +34,15 @@ jobs:
           else
             build-consumer/consumer build/c-fixtures
           fi
-      - run: cmake -S . -B build-static -DBUILD_STATIC=ON -DBUILD_CLI=OFF -DTEST_UPSTREAM_CLI=ON
+      - run: cmake -S . -B build-static -DBUILD_STATIC=ON -DBUILD_CLI=OFF -DTEST_UPSTREAM_CLI=ON -DCMAKE_INSTALL_LIBDIR=lib/test-arch
       - run: cmake --build build-static --config Release
       - run: ctest --test-dir build-static -C Release --output-on-failure
+      - name: Verify relocated multiarch pkg-config static installation
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          cmake --install build-static --config Release --prefix "$GITHUB_WORKSPACE/install-static"
+          mv install-static relocated-static
+          export PKG_CONFIG_PATH="$GITHUB_WORKSPACE/relocated-static/lib/test-arch/pkgconfig"
+          cc -std=c11 -UNDEBUG tests/c_abi.c $(pkg-config --cflags --libs --static libunshield) -o build-static/pkg-consumer
+          build-static/pkg-consumer build-static/c-fixtures

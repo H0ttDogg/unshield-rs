@@ -7,6 +7,28 @@ pub const FILE_SPLIT: u16 = 1;
 pub const FILE_OBFUSCATED: u16 = 2;
 pub const FILE_COMPRESSED: u16 = 4;
 pub const FILE_INVALID: u16 = 8;
+pub(crate) const MAX_HEADER: usize = 64 * 1024 * 1024;
+const MAX_STRING: usize = 64 * 1024;
+
+// Offsets may repeatedly reference the same bytes. Bound the decoded allocation
+// as well as the input size so a tiny table cannot expand into gigabytes of names.
+struct Budget(usize);
+impl Budget {
+    fn take(&mut self, bytes: usize) -> Result<()> {
+        self.0 = self
+            .0
+            .checked_sub(bytes)
+            .ok_or_else(|| invalid("decoded metadata exceeds 128 MiB"))?;
+        Ok(())
+    }
+    fn entries<T>(&mut self, count: usize) -> Result<()> {
+        self.take(
+            count
+                .checked_mul(std::mem::size_of::<T>())
+                .ok_or_else(|| invalid("allocation size overflow"))?,
+        )
+    }
+}
 
 pub(crate) struct Bytes<'a>(pub &'a [u8]);
 impl<'a> Bytes<'a> {
@@ -33,40 +55,38 @@ impl<'a> Bytes<'a> {
     pub fn u64(&self, p: usize) -> Result<u64> {
         Ok(u64::from_le_bytes(self.slice(p, 8)?.try_into().unwrap()))
     }
-    fn string(&self, p: usize, unicode: bool) -> Result<String> {
+    fn name(&self, p: usize, unicode: bool, budget: &mut Budget) -> Result<(String, Vec<u8>)> {
         let tail = self
             .0
             .get(p..)
             .ok_or_else(|| invalid("string offset outside header"))?;
+        let tail = &tail[..tail.len().min(MAX_STRING + 2)];
         if unicode {
-            let mut units = Vec::new();
-            for pair in tail.as_chunks::<2>().0 {
-                let unit = u16::from_le_bytes([pair[0], pair[1]]);
-                if unit == 0 {
-                    return String::from_utf16(&units)
-                        .map_err(|_| invalid("invalid UTF-16 string"));
-                }
-                units.push(unit);
-            }
-        } else if let Some(end) = tail.iter().position(|&b| b == 0) {
-            // C exposes these bytes verbatim. The FFI keeps the original bytes separately.
-            return Ok(String::from_utf8_lossy(&tail[..end]).into_owned());
+            let pairs = tail.as_chunks::<2>().0;
+            let end = pairs
+                .iter()
+                .position(|p| *p == [0, 0])
+                .ok_or_else(|| invalid("unterminated or excessive string"))?;
+            budget.take(end * 8)?;
+            let units = pairs[..end]
+                .iter()
+                .map(|p| u16::from_le_bytes(*p))
+                .collect::<Vec<_>>();
+            let name = String::from_utf16(&units).map_err(|_| invalid("invalid UTF-16 string"))?;
+            let bytes = name.as_bytes().to_vec();
+            return Ok((name, bytes));
         }
-        Err(invalid("unterminated string"))
-    }
-    fn raw_string(&self, p: usize, unicode: bool) -> Result<Vec<u8>> {
-        if unicode {
-            return Ok(self.string(p, true)?.into_bytes());
-        }
-        let tail = self
-            .0
-            .get(p..)
-            .ok_or_else(|| invalid("string offset outside header"))?;
         let end = tail
             .iter()
+            .take(MAX_STRING + 1)
             .position(|&b| b == 0)
-            .ok_or_else(|| invalid("unterminated string"))?;
-        Ok(tail[..end].to_vec())
+            .ok_or_else(|| invalid("unterminated or excessive string"))?;
+        budget.take(end * 4)?;
+        // C exposes narrow bytes verbatim; keep them alongside a display string.
+        Ok((
+            String::from_utf8_lossy(&tail[..end]).into_owned(),
+            tail[..end].to_vec(),
+        ))
     }
 }
 
@@ -141,8 +161,8 @@ pub(crate) fn common(data: &[u8], force: Option<u32>) -> Result<(u32, usize, usi
     }
     let base = b.u32(12)? as usize;
     let size = b.u32(16)? as usize;
-    if size == 0 {
-        return Err(invalid("no CAB descriptor"));
+    if size < 0x276 || base.checked_add(size).is_none_or(|end| end > MAX_HEADER) {
+        return Err(invalid("invalid or excessive descriptor size"));
     }
     Ok((major, base, size))
 }
@@ -161,6 +181,16 @@ impl Metadata {
         let table = relative(b.u32(base + 0x0c)?)?;
         let table_size = b.u32(base + 0x14)? as usize;
         b.slice(table, table_size)?;
+        let end = (base + descriptor_size).max(
+            table
+                .checked_add(table_size)
+                .ok_or_else(|| invalid("table size overflow"))?,
+        );
+        if end > MAX_HEADER {
+            return Err(invalid("metadata exceeds 64 MiB"));
+        }
+        // Do not interpret payload bytes beyond the declared metadata as records.
+        let b = Bytes(&data[..end]);
         let dirs = b.u32(base + 0x1c)? as usize;
         let count = b.u32(base + 0x28)? as usize;
         let count_all = dirs
@@ -169,6 +199,9 @@ impl Metadata {
         if count_all > 1_000_000 {
             return Err(invalid("too many directory/file entries"));
         }
+        if count_all * 4 > table_size {
+            return Err(invalid("entry offsets exceed file table"));
+        }
         b.slice(
             table,
             count_all
@@ -176,8 +209,9 @@ impl Metadata {
                 .ok_or_else(|| invalid("table size overflow"))?,
         )?;
         let unicode = major >= 17;
-        let name_at = |p| b.string(p, unicode);
-        let raw_at = |p| b.raw_string(p, unicode);
+        let mut budget = Budget(128 * 1024 * 1024);
+        budget.entries::<FileEntry>(count)?;
+        budget.entries::<(String, Vec<u8>)>(dirs)?;
         let table_relative = |o: u32| {
             table
                 .checked_add(o as usize)
@@ -187,8 +221,9 @@ impl Metadata {
         let mut directory_bytes = Vec::with_capacity(dirs);
         for i in 0..dirs {
             let p = table_relative(b.u32(table + i * 4)?)?;
-            directories.push(name_at(p)?);
-            directory_bytes.push(raw_at(p)?);
+            let (name, bytes) = b.name(p, unicode, &mut budget)?;
+            directories.push(name);
+            directory_bytes.push(bytes);
         }
         let records = table_relative(b.u32(base + 0x2c)?)?;
         let mut files = Vec::with_capacity(count);
@@ -255,7 +290,7 @@ impl Metadata {
                 (String::new(), Vec::new())
             } else {
                 let p = table_relative(name)?;
-                (name_at(p)?, raw_at(p)?)
+                b.name(p, unicode, &mut budget)?
             };
             files.push(FileEntry {
                 name,
@@ -274,7 +309,7 @@ impl Metadata {
             });
         }
         // Each hash bucket contains a linked list. Detect cycles before following untrusted offsets.
-        let lists = |start: usize| -> Result<Vec<usize>> {
+        let lists = |start: usize, budget: &mut Budget| -> Result<Vec<usize>> {
             let mut result = Vec::new();
             let mut visited = HashSet::new();
             for i in 0..71 {
@@ -287,6 +322,8 @@ impl Metadata {
                         return Err(invalid("too many descriptors"));
                     }
                     let p = relative(offset)?;
+                    b.slice(p, 12)?;
+                    budget.take(64)?; // linked-list result and visited-set storage
                     result.push(relative(b.u32(p + 4)?)?);
                     offset = b.u32(p + 8)?;
                 }
@@ -294,7 +331,9 @@ impl Metadata {
             Ok(result)
         };
         let mut file_groups = Vec::new();
-        for p in lists(0x3e)? {
+        for p in lists(0x3e, &mut budget)? {
+            budget.entries::<FileGroup>(1)?;
+            b.slice(p, if major <= 5 { 0x54 } else { 0x1e })?;
             let name_p = relative(b.u32(p)?)?;
             let range = p + if major <= 5 { 0x4c } else { 0x16 };
             let first = b.u32(range)? as i32;
@@ -302,15 +341,18 @@ impl Metadata {
             if first < -1 || last < -1 || (first >= 0 && (last < first || last as usize >= count)) {
                 return Err(invalid("bad file group range"));
             }
+            let (name, name_bytes) = b.name(name_p, unicode, &mut budget)?;
             file_groups.push(FileGroup {
-                name: name_at(name_p)?,
-                name_bytes: raw_at(name_p)?,
+                name,
+                name_bytes,
                 first_file: first,
                 last_file: last,
             });
         }
         let mut components = Vec::new();
-        for p in lists(0x15a)? {
+        for p in lists(0x15a, &mut budget)? {
+            budget.entries::<Component>(1)?;
+            b.slice(p, if major <= 5 { 0x76 } else { 0x75 })?;
             let name_p = relative(b.u32(p)?)?;
             let groups_p = p + if major <= 5 { 0x70 } else { 0x6f };
             let group_count = b.u16(groups_p)? as usize;
@@ -318,16 +360,20 @@ impl Metadata {
                 return Err(invalid("too many groups in component"));
             }
             let group_table = relative(b.u32(groups_p + 2)?)?;
+            b.slice(group_table, group_count * 4)?;
+            budget.entries::<(String, Vec<u8>)>(group_count)?;
             let mut groups = Vec::new();
             let mut group_bytes = Vec::new();
             for i in 0..group_count {
                 let p = relative(b.u32(group_table + i * 4)?)?;
-                groups.push(name_at(p)?);
-                group_bytes.push(raw_at(p)?);
+                let (name, bytes) = b.name(p, unicode, &mut budget)?;
+                groups.push(name);
+                group_bytes.push(bytes);
             }
+            let (name, name_bytes) = b.name(name_p, unicode, &mut budget)?;
             components.push(Component {
-                name: name_at(name_p)?,
-                name_bytes: raw_at(name_p)?,
+                name,
+                name_bytes,
                 file_groups: groups,
                 group_bytes,
             });

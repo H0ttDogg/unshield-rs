@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 use crate::{
     error::{invalid, Error, Result},
-    format::{self, Bytes},
+    format::{self, Bytes, MAX_HEADER},
     io::{CabinetIo, NativeIo, ReadSeek},
     FileEntry, Metadata, FILE_COMPRESSED, FILE_OBFUSCATED, FILE_SPLIT,
 };
@@ -13,7 +13,6 @@ use std::{
     rc::Rc,
 };
 
-const MAX_HEADER: usize = 64 * 1024 * 1024;
 const BLOCK_SIZE: usize = 64 * 1024;
 const MARKER: [u8; 4] = [0, 0, 255, 255];
 
@@ -164,8 +163,17 @@ impl Archive {
         mode: Compression,
     ) -> Result<()> {
         let index = self.resolve_link(index)?;
+        let reader = Payload::new(self, index, mode)?;
+        self.extract_payload(index, reader, writer, mode)
+    }
+    fn extract_payload(
+        &self,
+        index: usize,
+        mut reader: Payload<'_>,
+        writer: &mut dyn Write,
+        mode: Compression,
+    ) -> Result<()> {
         let file = self.file(index)?;
-        let mut reader = Payload::new(self, index, mode)?;
         if mode == Compression::Raw {
             io::copy(&mut reader, writer)?;
             return Ok(());
@@ -263,12 +271,15 @@ impl Archive {
         Ok(output)
     }
     pub fn save(&self, index: usize, path: Option<&Path>, mode: Compression) -> Result<()> {
+        // Validate the member and open its input before truncating a caller's output.
+        let index = self.resolve_link(index)?;
+        let reader = Payload::new(self, index, mode)?;
         if let Some(path) = path {
             let mut writer = self.io.create(path)?;
-            self.extract_to(index, writer.as_mut(), mode)?;
+            self.extract_payload(index, reader, writer.as_mut(), mode)?;
             writer.flush()?;
         } else {
-            self.extract_to(index, &mut io::sink(), mode)?;
+            self.extract_payload(index, reader, &mut io::sink(), mode)?;
         }
         Ok(())
     }
@@ -295,6 +306,9 @@ fn inflate_chunk(input: &[u8], old: bool) -> Result<Vec<u8>> {
     if (!old && status != Status::StreamEnd) || (old && decoder.total_in() as usize != input.len())
     {
         return Err(invalid("incomplete DEFLATE chunk"));
+    }
+    if !old && (decoder.total_in() as usize) < input.len() - 1 {
+        return Err(invalid("trailing data in DEFLATE chunk"));
     }
     output.truncate(n);
     Ok(output)
@@ -378,7 +392,7 @@ impl<'a> Payload<'a> {
             file.expanded_size
         };
         let file_len = input.seek(SeekFrom::End(0))?;
-        if file_len == file.data_offset && mode == Compression::Old {
+        if remaining != 0 && file_len == file.data_offset && mode == Compression::Old {
             let dir = archive
                 .metadata
                 .directories
@@ -595,6 +609,34 @@ pub fn safe_relative(name: &str) -> Result<PathBuf> {
         }
         if part == ".." || part.contains(':') || part.contains('\0') {
             return Err(invalid("unsafe member path"));
+        }
+        #[cfg(windows)]
+        {
+            // Win32 normalizes trailing dots/spaces and interprets DOS device
+            // names even with extensions; neither denotes an ordinary member.
+            let stem = part
+                .split('.')
+                .next()
+                .unwrap_or("")
+                .trim_end_matches(' ')
+                .to_uppercase();
+            let device = matches!(
+                stem.as_str(),
+                "CON" | "PRN" | "AUX" | "NUL" | "CONIN$" | "CONOUT$" | "CLOCK$"
+            ) || ["COM", "LPT"].iter().any(|prefix| {
+                stem.strip_prefix(prefix).is_some_and(|suffix| {
+                    matches!(
+                        suffix,
+                        "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "¹" | "²" | "³"
+                    )
+                })
+            });
+            if device
+                || part.ends_with(['.', ' '])
+                || part.chars().any(|c| c < ' ' || "<>\"|?*".contains(c))
+            {
+                return Err(invalid("unsafe member path on Windows"));
+            }
         }
         result.push(part);
     }

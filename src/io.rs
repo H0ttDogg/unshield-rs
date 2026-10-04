@@ -30,13 +30,13 @@ impl CabinetIo for NativeIo {
             .parent()
             .filter(|p| !p.as_os_str().is_empty())
             .unwrap_or(Path::new("."));
-        let name = path.file_name().unwrap_or_default().to_string_lossy();
+        let name = path.file_name().unwrap_or_default().as_encoded_bytes();
         for entry in fs::read_dir(parent)? {
             let entry = entry?;
             if entry
                 .file_name()
-                .to_string_lossy()
-                .eq_ignore_ascii_case(&name)
+                .as_encoded_bytes()
+                .eq_ignore_ascii_case(name)
             {
                 return Ok(entry.path());
             }
