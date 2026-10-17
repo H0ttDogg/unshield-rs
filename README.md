@@ -144,12 +144,38 @@ Verified locally on Windows x64/MSVC:
   installed `find_package(unshield)` target pass.
 
 Recent-format coverage is currently from generated fixtures, rather than a real
-v6+/v17+ installer corpus. Linux/macOS builds and installation are covered by the
-included CI workflow but have not been run on this Windows host. Compatibility
+v6+/v17+ installer corpus. The included CI workflow covers Linux, macOS, and
+Windows builds and installation. Compatibility
 is tied to the pinned header/API; this is not a claim of exhaustive compatibility
 with every InstallShield producer or undocumented format variant.
 
 Differential fuzzing is intentionally deferred.
+
+### Miri
+
+The 2026-10-07 Miri check at commit `98482a7`, using
+`rustc 1.101.0-nightly (db8f076d2 2026-10-03)`, found **no undefined behavior in
+20 completed tests** and reported no memory leaks. The run used
+`cargo +nightly miri nextest run --no-fail-fast` with
+`MIRIFLAGS="-Zmiri-disable-isolation"` to allow temporary-file access.
+It exercised C ABI name and struct lifetimes, mutable group records, overlapping
+deobfuscation arguments, and preservation of legacy filename bytes.
+
+This was a partial check, not a passing run of the entire suite:
+
+- Four CLI tests could not run because Miri does not support the subprocess call
+  `posix_spawnattr_init`; these are unsupported operations, not UB findings.
+- The metadata allocation-limit test was stopped before completion after about
+  49 minutes.
+- Five upstream corpus tests were ignored because the corpus was not present.
+- Custom I/O callbacks through `unshield_open2` and
+  `unshield_open2_force_version` were not exercised. This leaves the unsafe
+  `CallbackIo` and `CallbackFile` paths unchecked by Miri, even though the separate
+  compiled C harness tests custom callbacks.
+
+A clean Miri result applies only to the code paths exercised. See
+[miri-check.md](miri-check.md) for the full report and remaining wrapper coverage
+gaps, and [SAFETY.md](SAFETY.md) for safety boundaries and the C caller contract.
 
 ## License
 
