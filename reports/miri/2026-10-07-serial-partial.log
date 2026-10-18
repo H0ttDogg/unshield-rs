@@ -1,0 +1,33 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/lib.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/unshield-rs/874fdbdf069ee8ca/out/unshield-874fdbdf069ee8ca)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running unittests src/main.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/unshield-rs/2414e5a21087b6f7/out/unshield_rs-2414e5a21087b6f7)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/corpus.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/unshield-rs/2c1b6c8aedf9f47d/out/corpus-2c1b6c8aedf9f47d)
+
+running 5 tests
+test avigomanager ... ignored, requires pinned upstream corpus
+test baldurs_gate ... ignored, requires pinned upstream corpus
+test feeble_files ... ignored, requires pinned upstream corpus
+test historical_cve_path_is_rejected_by_cli ... ignored, requires pinned upstream corpus
+test wireplay ... ignored, requires pinned upstream corpus
+
+test result: ok. 0 passed; 0 failed; 5 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/port.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/unshield-rs/109da3360d4e32b2/out/port-109da3360d4e32b2)
+
+running 13 tests
+test c_api_owns_names_and_structs_until_close ... ok
+test damaged_payloads_and_checksums_fail ... ok
+test deobfuscation_seed_is_continuous_and_wraps ... ok
+test embedded_header_and_case_insensitive_lookup ... ok
+test empty_compressed_member_is_valid ... ok
+test extract_version_families ... 

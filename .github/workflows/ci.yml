@@ -12,12 +12,31 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Fetch pinned upstream test corpus
         shell: bash
         run: sh scripts/fetch-upstream.sh
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
-      - run: cargo test -- --include-ignored
+      - name: Fetch hash-pinned real installers
+        run: python scripts/real-installers.py fetch
+      - run: cargo test --locked -- --include-ignored --skip real_installers
+      - name: Compare real-installer metadata and every valid member
+        shell: bash
+        env:
+          UNSHIELD_REQUIRE_REAL_INSTALLERS: asus-realtek-lan-105
+        run: |
+          set -o pipefail
+          cargo test --locked --test real_installers -- --nocapture 2>&1 | tee target/real-installers.log
+      - name: Preserve real-installer comparison results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-installers-${{ matrix.os }}
+          path: target/real-installers.log
+          if-no-files-found: warn
       - run: cmake -S . -B build -DTEST_UPSTREAM_CLI=ON
       - run: cmake --build build --config Release
       - run: ctest --test-dir build -C Release --output-on-failure

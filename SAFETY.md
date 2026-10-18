@@ -74,7 +74,12 @@ harness, original C CLI, and installed C consumer remain part of validation.
 CI covers Ubuntu, Windows, and macOS, including shared/static C callers and a
 relocated multiarch pkg-config static consumer on Ubuntu.
 
-This review and passing tests are not proof of an absence of bugs. Recent-format
-coverage still uses generated v6+/v17+ fixtures; a real recent-installer corpus and
-differential fuzzing remain outstanding. Differential fuzzing was intentionally
-excluded from this task.
+This review and passing tests are not proof of an absence of bugs. Newer real
+coverage now includes one format-21 installer CAB set, with all 75 valid members
+compared against independent C metadata and SHA-256 hashes on Linux. Other newer
+versions and non-ASCII/split/obfuscated/linked real inputs remain unverified;
+see [the coverage report](reports/real-installers.md).
+Three small in-memory callback tests also pass under Miri; see
+[the focused report](reports/miri/2026-10-17-callbacks.md). This checks exercised
+callback operations, not arbitrary C caller behavior. Differential fuzzing
+remains deferred.

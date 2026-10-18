@@ -143,9 +143,21 @@ Verified locally on Windows x64/MSVC:
 - Shared and static CMake builds, installation, and a separate C consumer of the
   installed `find_package(unshield)` target pass.
 
-Recent-format coverage is currently from generated fixtures, rather than a real
-v6+/v17+ installer corpus. The included CI workflow covers Linux, macOS, and
-Windows builds and installation. Compatibility
+Real newer-format validation now includes one vendor-distributed **format-21**
+ASUS Realtek package: all **75 valid CAB members** match independently extracted
+upstream C metadata and SHA-256 hashes on Linux. See
+[the inventory and reproduction commands](corpus/README.md) and
+[the measured coverage report](reports/real-installers.md). Fetch and compare it:
+
+```sh
+python3 scripts/real-installers.py fetch
+cargo test --locked --test real_installers -- --nocapture
+```
+
+The names use UTF-16LE storage but contain no non-ASCII characters. Real v6–16
+coverage and newer split/obfuscated/linked member coverage remain open. CI now
+requires this package on Linux, macOS and Windows; the new Windows/macOS checks
+have not yet been executed. Compatibility
 is tied to the pinned header/API; this is not a claim of exhaustive compatibility
 with every InstallShield producer or undocumented format variant.
 
@@ -169,13 +181,26 @@ This was a partial check, not a passing run of the entire suite:
   49 minutes.
 - Five upstream corpus tests were ignored because the corpus was not present.
 - Custom I/O callbacks through `unshield_open2` and
-  `unshield_open2_force_version` were not exercised. This leaves the unsafe
-  `CallbackIo` and `CallbackFile` paths unchecked by Miri, even though the separate
-  compiled C harness tests custom callbacks.
+  `unshield_open2_force_version` were not exercised by that run. A subsequent
+  focused run covers these paths, as described below.
 
 A clean Miri result applies only to the code paths exercised. See
-[miri-check.md](miri-check.md) for the full report and remaining wrapper coverage
-gaps, and [SAFETY.md](SAFETY.md) for safety boundaries and the C caller contract.
+[miri-check.md](miri-check.md) for that historical report. Its original available
+[full log](reports/miri/2026-10-07-full.log) and
+[partial serial log](reports/miri/2026-10-07-serial-partial.log) are preserved.
+
+A focused run on 2026-10-17 completed **three new custom-callback tests** without
+reported undefined behavior or leaks. They exercise copied callback tables,
+file/directory lifetimes, short reads, and failure cleanup using small in-memory
+fixtures, with Miri isolation enabled:
+
+```sh
+cargo +nightly miri test --test callbacks
+```
+
+See [the focused report and raw output](reports/miri/2026-10-17-callbacks.md) and
+[SAFETY.md](SAFETY.md) for remaining limits and the C caller contract. This is
+additional path coverage, not a full-suite Miri pass.
 
 ## License
 

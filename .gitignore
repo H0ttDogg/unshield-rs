@@ -3,4 +3,33 @@
 /test-data/
 /upstream/
 /build/
+/build-*/
+/install/
+/install-*/
+/relocated-static/
+
+# Reproducible real-installer run output.
+/reports/real-installer-reference-linux.log
+/reports/real-installers-linux.log
+
+# Keep only the root README and safety documentation in Git.
+*.md
+!/README.md
+!/SAFETY.md
+
+# Local tool and editor state.
+/.idea/
+/.vscode/
+__pycache__/
+*.pyc
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
+
+# Native build and profiling output.
 *.pdb
+*.profraw
+*.profdata

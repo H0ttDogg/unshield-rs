@@ -1,0 +1,45 @@
+   Compiling version_check v0.9.5
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling typenum v1.20.1
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.154
+   Compiling itoa v1.0.18
+   Compiling cpufeatures v0.2.17
+   Compiling memchr v2.8.3
+   Compiling generic-array v0.14.7
+   Compiling syn v3.0.9
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling serde_derive v1.0.229
+   Compiling unshield-rs v1.6.2 (/home/farhan/programming/rust/unshield-rs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.76s
+     Running tests/callbacks.rs (target/miri/x86_64-unknown-linux-gnu/debug/build/unshield-rs/05e53a023c5bc114/out/callbacks-05e53a023c5bc114)
+
+running 3 tests
+test callback_failures_release_every_file_and_directory ... unshield: fopen callback failed
+unshield: failed to fill whole buffer
+unshield: fread returned excessive count
+unshield: fseek callback failed
+unshield: ftell callback failed
+unshield: cabinet not found by readdir callback
+unshield: failed to fill whole buffer
+unshield: fread returned excessive count
+unshield: fseek callback failed
+unshield: ftell callback failed
+unshield: fopen callback failed
+unshield: failed to write whole buffer
+unshield: fwrite returned excessive count
+unshield: cabinet not found by readdir callback
+ok
+test callback_table_and_directory_entries_live_through_extraction ... ok
+test incomplete_callback_table_is_rejected_before_opening ... unshield: invalid cabinet: incomplete I/O callbacks
+ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.37s
+

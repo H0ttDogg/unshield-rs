@@ -1,0 +1,325 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s
+info: for the target platform, using target runner `/home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`
+info: for the host platform, using target runner `/home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`
+────────────
+ Nextest run ID 79feb862-7ece-46b7-a94f-ab3641e6a473 with nextest profile: default-miri
+    Starting 25 tests across 5 binaries (5 tests skipped)
+        PASS [   2.213s] ( 1/25) unshield-rs::review c_deobfuscation_allows_seed_overlapping_buffer
+        PASS [   2.528s] ( 2/25) unshield-rs::port deobfuscation_seed_is_continuous_and_wraps
+        PASS [  35.143s] ( 3/25) unshield-rs::port legacy_names_retain_original_bytes_for_c
+        SLOW [> 60.000s] (─────) unshield-rs::review c_mutable_group_records_are_observed_by_accessors
+        SLOW [> 60.000s] (─────) unshield-rs::port embedded_header_and_case_insensitive_lookup
+        SLOW [> 60.000s] (─────) unshield-rs::port damaged_payloads_and_checksums_fail
+        SLOW [> 60.000s] (─────) unshield-rs::port split_payload_including_chunk_prefix_across_volumes
+        SLOW [> 60.000s] (─────) unshield-rs::port c_api_owns_names_and_structs_until_close
+        SLOW [> 60.000s] (─────) unshield-rs::port link_cycles_are_rejected
+        SLOW [> 60.000s] (─────) unshield-rs::port previous_file_link_extracts_target_bytes
+        SLOW [> 60.000s] (─────) unshield-rs::port truncated_metadata_and_bad_offsets_return_errors
+        SLOW [> 60.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [> 60.000s] (─────) unshield-rs::review cli_failed_extraction_preserves_existing_files_and_cleans_temporary
+        SLOW [> 60.000s] (─────) unshield-rs::port large_volume_and_member_offsets_are_not_truncated_or_used_as_sentinels
+        SLOW [> 60.000s] (─────) unshield-rs::port raw_deobfuscates_without_decompressing
+        SLOW [> 60.000s] (─────) unshield-rs::port empty_compressed_member_is_valid
+        SLOW [> 60.000s] (─────) unshield-rs::review cli_group_filter_checks_all_overlapping_groups
+        SLOW [> 60.000s] (─────) unshield-rs::review cli_refuses_symlink_destinations
+        PASS [  63.921s] ( 4/25) unshield-rs::review c_mutable_group_records_are_observed_by_accessors
+        SLOW [> 60.000s] (─────) unshield-rs::review cli_success_replaces_existing_hardlink_without_modifying_its_target
+        PASS [  35.357s] ( 5/25) unshield-rs::review empty_legacy_member_at_end_of_cabinet_needs_no_external_file
+        SLOW [>120.000s] (─────) unshield-rs::port damaged_payloads_and_checksums_fail
+        SLOW [>120.000s] (─────) unshield-rs::port embedded_header_and_case_insensitive_lookup
+        SLOW [>120.000s] (─────) unshield-rs::review cli_failed_extraction_preserves_existing_files_and_cleans_temporary
+        SLOW [>120.000s] (─────) unshield-rs::port link_cycles_are_rejected
+        SLOW [>120.000s] (─────) unshield-rs::port split_payload_including_chunk_prefix_across_volumes
+        SLOW [>120.000s] (─────) unshield-rs::port c_api_owns_names_and_structs_until_close
+        SLOW [>120.000s] (─────) unshield-rs::port truncated_metadata_and_bad_offsets_return_errors
+        SLOW [>120.000s] (─────) unshield-rs::port previous_file_link_extracts_target_bytes
+        SLOW [>120.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>120.000s] (─────) unshield-rs::port large_volume_and_member_offsets_are_not_truncated_or_used_as_sentinels
+        SLOW [>120.000s] (─────) unshield-rs::port raw_deobfuscates_without_decompressing
+        SLOW [>120.000s] (─────) unshield-rs::port empty_compressed_member_is_valid
+        SLOW [>120.000s] (─────) unshield-rs::review cli_group_filter_checks_all_overlapping_groups
+        SLOW [>120.000s] (─────) unshield-rs::review cli_refuses_symlink_destinations
+        PASS [  35.320s] ( 6/25) unshield-rs::review malformed_member_does_not_truncate_output_before_opening_input
+        FAIL [ 151.247s] ( 7/25) unshield-rs::review cli_failed_extraction_preserves_existing_files_and_cleans_temporary
+  stdout ───
+
+    running 1 test
+    test cli_failed_extraction_preserves_existing_files_and_cleans_temporary ... 
+  stderr ───
+    error: unsupported operation: can't call foreign function `posix_spawnattr_init` on OS `linux`
+       --> /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/unix/unix.rs:706:20
+        |
+    706 |             cvt_nz(libc::posix_spawnattr_init(attrs.get()))?;
+        |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsupported operation occurred here
+        |
+        = help: this means the program tried to do something Miri does not support; it does not indicate a bug in the program
+        = note: this is on thread `cli_failed_extr`
+        = note: stack backtrace:
+                0: std::sys::process::unix::unix::<impl std::sys::process::unix::common::Command>::posix_spawn
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/unix/unix.rs:706:20: 706:59
+                1: std::sys::process::unix::unix::<impl std::sys::process::unix::common::Command>::spawn
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/unix/unix.rs:73:28: 73:68
+                2: std::sys::process::output
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/mod.rs:55:36: 55:69
+                3: std::process::Command::output
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/process.rs:1139:40: 1139:68
+                4: cli_extract
+                    at tests/review.rs:153:5: 158:18
+                5: cli_failed_extraction_preserves_existing_files_and_cleans_temporary
+                    at tests/review.rs:171:18: 171:43
+                6: cli_failed_extraction_preserves_existing_files_and_cleans_temporary::{closure#0}
+                    at tests/review.rs:163:73: 163:73
+
+    note: some details are omitted, run with `MIRIFLAGS=-Zmiri-backtrace=full` for a verbose backtrace
+
+    error: aborting due to 1 previous error
+
+
+    (test failed with exit code 1)
+
+        FAIL [ 151.003s] ( 8/25) unshield-rs::review cli_refuses_symlink_destinations
+  stdout ───
+
+    running 1 test
+    test cli_refuses_symlink_destinations ... 
+  stderr ───
+    error: unsupported operation: can't call foreign function `posix_spawnattr_init` on OS `linux`
+       --> /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/unix/unix.rs:706:20
+        |
+    706 |             cvt_nz(libc::posix_spawnattr_init(attrs.get()))?;
+        |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsupported operation occurred here
+        |
+        = help: this means the program tried to do something Miri does not support; it does not indicate a bug in the program
+        = note: this is on thread `cli_refuses_sym`
+        = note: stack backtrace:
+                0: std::sys::process::unix::unix::<impl std::sys::process::unix::common::Command>::posix_spawn
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/unix/unix.rs:706:20: 706:59
+                1: std::sys::process::unix::unix::<impl std::sys::process::unix::common::Command>::spawn
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/unix/unix.rs:73:28: 73:68
+                2: std::sys::process::output
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/mod.rs:55:36: 55:69
+                3: std::process::Command::output
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/process.rs:1139:40: 1139:68
+                4: cli_extract
+                    at tests/review.rs:153:5: 158:18
+                5: cli_refuses_symlink_destinations
+                    at tests/review.rs:268:14: 268:39
+                6: cli_refuses_symlink_destinations::{closure#0}
+                    at tests/review.rs:260:38: 260:38
+
+    note: some details are omitted, run with `MIRIFLAGS=-Zmiri-backtrace=full` for a verbose backtrace
+
+    error: aborting due to 1 previous error
+
+
+    (test failed with exit code 1)
+
+        PASS [   3.177s] ( 9/25) unshield-rs::review native_lookup_does_not_conflate_non_utf8_filenames
+        SLOW [>120.000s] (─────) unshield-rs::review cli_success_replaces_existing_hardlink_without_modifying_its_target
+        PASS [ 156.291s] (10/25) unshield-rs::port link_cycles_are_rejected
+        FAIL [ 155.442s] (11/25) unshield-rs::review cli_group_filter_checks_all_overlapping_groups
+  stdout ───
+
+    running 1 test
+    test cli_group_filter_checks_all_overlapping_groups ... 
+  stderr ───
+    error: unsupported operation: can't call foreign function `posix_spawnattr_init` on OS `linux`
+       --> /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/unix/unix.rs:706:20
+        |
+    706 |             cvt_nz(libc::posix_spawnattr_init(attrs.get()))?;
+        |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsupported operation occurred here
+        |
+        = help: this means the program tried to do something Miri does not support; it does not indicate a bug in the program
+        = note: this is on thread `cli_group_filte`
+        = note: stack backtrace:
+                0: std::sys::process::unix::unix::<impl std::sys::process::unix::common::Command>::posix_spawn
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/unix/unix.rs:706:20: 706:59
+                1: std::sys::process::unix::unix::<impl std::sys::process::unix::common::Command>::spawn
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/unix/unix.rs:73:28: 73:68
+                2: std::sys::process::output
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/mod.rs:55:36: 55:69
+                3: std::process::Command::output
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/process.rs:1139:40: 1139:68
+                4: cli_group_filter_checks_all_overlapping_groups
+                    at tests/review.rs:213:18: 218:18
+                5: cli_group_filter_checks_all_overlapping_groups::{closure#0}
+                    at tests/review.rs:202:52: 202:52
+
+    note: some details are omitted, run with `MIRIFLAGS=-Zmiri-backtrace=full` for a verbose backtrace
+
+    error: aborting due to 1 previous error
+
+
+    (test failed with exit code 1)
+
+        PASS [ 159.940s] (12/25) unshield-rs::port empty_compressed_member_is_valid
+        PASS [ 164.063s] (13/25) unshield-rs::port raw_deobfuscates_without_decompressing
+        SLOW [>180.000s] (─────) unshield-rs::port damaged_payloads_and_checksums_fail
+        SLOW [>180.000s] (─────) unshield-rs::port embedded_header_and_case_insensitive_lookup
+        SLOW [>180.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>180.000s] (─────) unshield-rs::port c_api_owns_names_and_structs_until_close
+        SLOW [>180.000s] (─────) unshield-rs::port split_payload_including_chunk_prefix_across_volumes
+        SLOW [>180.000s] (─────) unshield-rs::port truncated_metadata_and_bad_offsets_return_errors
+        SLOW [>180.000s] (─────) unshield-rs::port previous_file_link_extracts_target_bytes
+        SLOW [>180.000s] (─────) unshield-rs::port large_volume_and_member_offsets_are_not_truncated_or_used_as_sentinels
+        FAIL [ 153.333s] (14/25) unshield-rs::review cli_success_replaces_existing_hardlink_without_modifying_its_target
+  stdout ───
+
+    running 1 test
+    test cli_success_replaces_existing_hardlink_without_modifying_its_target ... 
+  stderr ───
+    error: unsupported operation: can't call foreign function `posix_spawnattr_init` on OS `linux`
+       --> /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/unix/unix.rs:706:20
+        |
+    706 |             cvt_nz(libc::posix_spawnattr_init(attrs.get()))?;
+        |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsupported operation occurred here
+        |
+        = help: this means the program tried to do something Miri does not support; it does not indicate a bug in the program
+        = note: this is on thread `cli_success_rep`
+        = note: stack backtrace:
+                0: std::sys::process::unix::unix::<impl std::sys::process::unix::common::Command>::posix_spawn
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/unix/unix.rs:706:20: 706:59
+                1: std::sys::process::unix::unix::<impl std::sys::process::unix::common::Command>::spawn
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/unix/unix.rs:73:28: 73:68
+                2: std::sys::process::output
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/sys/process/mod.rs:55:36: 55:69
+                3: std::process::Command::output
+                    at /home/farhan/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/process.rs:1139:40: 1139:68
+                4: cli_extract
+                    at tests/review.rs:153:5: 158:18
+                5: cli_success_replaces_existing_hardlink_without_modifying_its_target
+                    at tests/review.rs:190:18: 190:43
+                6: cli_success_replaces_existing_hardlink_without_modifying_its_target::{closure#0}
+                    at tests/review.rs:182:73: 182:73
+
+    note: some details are omitted, run with `MIRIFLAGS=-Zmiri-backtrace=full` for a verbose backtrace
+
+    error: aborting due to 1 previous error
+
+
+    (test failed with exit code 1)
+
+        SLOW [> 60.000s] (─────) unshield-rs::review metadata_extents_and_descriptor_offsets_are_checked
+        SLOW [> 60.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [> 60.000s] (─────) unshield-rs::review trailing_compressed_chunk_bytes_are_rejected
+        PASS [ 216.162s] (15/25) unshield-rs::port c_api_owns_names_and_structs_until_close
+        PASS [ 216.871s] (16/25) unshield-rs::port previous_file_link_extracts_target_bytes
+        PASS [ 221.452s] (17/25) unshield-rs::port embedded_header_and_case_insensitive_lookup
+        PASS [ 226.614s] (18/25) unshield-rs::port truncated_metadata_and_bad_offsets_return_errors
+        SLOW [>240.000s] (─────) unshield-rs::port split_payload_including_chunk_prefix_across_volumes
+        SLOW [>240.000s] (─────) unshield-rs::port damaged_payloads_and_checksums_fail
+        SLOW [>240.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>240.000s] (─────) unshield-rs::port large_volume_and_member_offsets_are_not_truncated_or_used_as_sentinels
+        SLOW [>120.000s] (─────) unshield-rs::review metadata_extents_and_descriptor_offsets_are_checked
+        PASS [ 122.537s] (19/25) unshield-rs::review metadata_extents_and_descriptor_offsets_are_checked
+        SLOW [>120.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>120.000s] (─────) unshield-rs::review trailing_compressed_chunk_bytes_are_rejected
+        PASS [ 121.805s] (20/25) unshield-rs::review trailing_compressed_chunk_bytes_are_rejected
+        SLOW [>300.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>300.000s] (─────) unshield-rs::port split_payload_including_chunk_prefix_across_volumes
+        SLOW [>300.000s] (─────) unshield-rs::port damaged_payloads_and_checksums_fail
+        SLOW [>300.000s] (─────) unshield-rs::port large_volume_and_member_offsets_are_not_truncated_or_used_as_sentinels
+        SLOW [>180.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>360.000s] (─────) unshield-rs::port damaged_payloads_and_checksums_fail
+        SLOW [>360.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>360.000s] (─────) unshield-rs::port split_payload_including_chunk_prefix_across_volumes
+        SLOW [>360.000s] (─────) unshield-rs::port large_volume_and_member_offsets_are_not_truncated_or_used_as_sentinels
+        PASS [ 384.910s] (21/25) unshield-rs::port damaged_payloads_and_checksums_fail
+        SLOW [>240.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>420.000s] (─────) unshield-rs::port split_payload_including_chunk_prefix_across_volumes
+        SLOW [>420.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>420.000s] (─────) unshield-rs::port large_volume_and_member_offsets_are_not_truncated_or_used_as_sentinels
+        PASS [ 442.076s] (22/25) unshield-rs::port large_volume_and_member_offsets_are_not_truncated_or_used_as_sentinels
+        PASS [ 452.985s] (23/25) unshield-rs::port split_payload_including_chunk_prefix_across_volumes
+        SLOW [>300.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>480.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>360.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>540.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>420.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>600.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>480.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>660.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>540.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>720.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>600.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>780.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>660.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>840.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>720.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>900.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>780.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>960.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>840.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1020.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>900.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1080.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>960.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1140.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1020.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1200.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1080.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1260.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1140.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1320.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1200.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1380.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1260.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1440.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1320.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1500.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1380.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1560.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1440.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1620.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1500.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1680.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1560.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1740.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1620.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1800.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1680.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1860.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1740.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1920.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1800.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>1980.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1860.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2040.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1920.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2100.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>1980.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2160.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>2040.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2220.000s] (─────) unshield-rs::port extract_version_families
+        SLOW [>2100.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        PASS [2268.448s] (24/25) unshield-rs::port extract_version_families
+        SLOW [>2160.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2220.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2280.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2340.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2400.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2460.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2520.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2580.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2640.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2700.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2760.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2820.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+        SLOW [>2880.000s] (─────) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+  Cancelling due to signal: 1 test still running
+     SIGTERM [2917.434s] (25/25) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+  stdout ───
+
+    running 1 test
+    test oversized_and_repeated_names_have_allocation_limits ... 
+
+    (test aborted with signal 15: SIGTERM)
+
+────────────
+     Summary [3070.968s] 25 tests run: 20 passed (14 slow), 5 failed, 5 skipped
+        FAIL [ 151.247s] ( 7/25) unshield-rs::review cli_failed_extraction_preserves_existing_files_and_cleans_temporary
+        FAIL [ 151.003s] ( 8/25) unshield-rs::review cli_refuses_symlink_destinations
+        FAIL [ 155.442s] (11/25) unshield-rs::review cli_group_filter_checks_all_overlapping_groups
+        FAIL [ 153.333s] (14/25) unshield-rs::review cli_success_replaces_existing_hardlink_without_modifying_its_target
+     SIGTERM [2917.434s] (25/25) unshield-rs::review oversized_and_repeated_names_have_allocation_limits
+error: test run failed

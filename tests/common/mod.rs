@@ -23,6 +23,9 @@ pub struct Fixture {
 }
 pub fn fixture(version: u32, flags: u16) -> Fixture {
     let payload = b"This is an InstallShield CAB fixture made for the Rust port.\n".repeat(3000);
+    fixture_with_payload(version, flags, payload)
+}
+pub fn fixture_with_payload(version: u32, flags: u16, payload: Vec<u8>) -> Fixture {
     let stored = if flags & 4 != 0 {
         let mut result = Vec::new();
         for part in payload.chunks(64 * 1024) {
