@@ -1,6 +1,7 @@
 """Checks for corpus tooling failure handling; uses no downloaded installers."""
 import hashlib
 import importlib.util
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -15,6 +16,25 @@ spec.loader.exec_module(corpus)
 
 
 class CorpusToolTests(unittest.TestCase):
+    def test_utf8_inventory_works_with_windows_default_encoding(self):
+        with tempfile.TemporaryDirectory() as temporary, patch.object(corpus, "ROOT", Path(temporary)):
+            directory = Path(temporary) / "corpus"
+            directory.mkdir()
+            group_name = "ｱﾌﾟﾘｹｰｼｮﾝ実行可能ﾌｧｲﾙ"
+            for family in ("v6-16", "v17-plus"):
+                inventory = {"schema_version": 1, "family": family,
+                             "samples": [{"id": family, "group_name": group_name}]}
+                (directory / f"{family}.json").write_bytes(
+                    json.dumps(inventory, ensure_ascii=False).encode("utf-8"))
+            read_text = Path.read_text
+
+            def windows_read_text(path, encoding=None, errors=None):
+                return read_text(path, encoding=encoding or "cp1252", errors=errors)
+
+            with patch.object(Path, "read_text", windows_read_text):
+                self.assertEqual([s["group_name"] for s in corpus.inventories()],
+                                 [group_name, group_name])
+
     def test_embedded_members_are_copied_without_executing_installer(self):
         with tempfile.TemporaryDirectory() as temporary, patch.object(corpus, "ROOT", Path(temporary)):
             directory = Path(temporary) / "test-data/real-installers/sample"

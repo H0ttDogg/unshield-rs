@@ -29,7 +29,7 @@ def relative(base, name):
 def inventories():
     samples = []
     for family in ("v6-16", "v17-plus"):
-        inventory = json.loads((ROOT / "corpus" / f"{family}.json").read_text())
+        inventory = json.loads((ROOT / "corpus" / f"{family}.json").read_text(encoding="utf-8"))
         if inventory["schema_version"] != 1 or inventory["family"] != family:
             raise ValueError(f"unsupported inventory: {family}")
         if not inventory["samples"]:
@@ -166,9 +166,9 @@ def compare(sample, extractor, record=False, io_mode="native", independent=True)
         expected = relative(ROOT, sample["expected"])
         if record:
             expected.parent.mkdir(parents=True, exist_ok=True)
-            expected.write_text(json.dumps(metadata, indent=2) + "\n")
+            expected.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
             print(f"RECORDED {expected.relative_to(ROOT)}", flush=True)
-        elif comparable(json.loads(expected.read_text())) != comparable(metadata):
+        elif comparable(json.loads(expected.read_text(encoding="utf-8"))) != comparable(metadata):
             raise ValueError(f"{label} output differs from {expected}")
         else:
             print(f"MATCH {label} {sample['id']}: {sample['expected_valid_members']} valid members, metadata and every SHA-256", flush=True)
