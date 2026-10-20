@@ -1,0 +1,44 @@
+CI run: https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354
+Tested revision: 87c495e93f82c466eeeac9dc9ba32a4688840ecf
+Selected job output; full logs and artifacts are available in the CI run.
+
+test (windows-latest): success
+test (macos-latest): success
+test (ubuntu-latest): success
+
+test (windows-latest)	Run python -m unittest discover -s tests -p "test_*.py"	2026-10-20T02:17:19.7922724Z Ran 6 tests in 0.072s
+test (windows-latest)	Compare real-installer metadata and every valid member	2026-10-20T02:18:20.1370161Z PASS asus-soundmax-4570: format 9, 328 total / 54 valid members; all metadata and SHA-256 hashes match
+test (windows-latest)	Compare real-installer metadata and every valid member	2026-10-20T02:18:40.8777521Z PASS kodensha-jbeijing7-124: format 16, 143 total / 130 valid members; all metadata and SHA-256 hashes match
+test (windows-latest)	Compare real-installer metadata and every valid member	2026-10-20T02:18:44.0644779Z PASS asus-realtek-lan-105: format 21, 153 total / 75 valid members; all metadata and SHA-256 hashes match
+test (windows-latest)	Compare real-installer metadata and every valid member	2026-10-20T02:18:44.7468517Z PASS sony-sfcardviewer-264: format 26, 33 total / 20 valid members; all metadata and SHA-256 hashes match
+test (windows-latest)	Run ctest --test-dir build -C Release --output-on-failure	2026-10-20T02:19:51.6332111Z 100% tests passed out of 5
+test (windows-latest)	Run ctest --test-dir build-consumer -C Release --output-on-failure	2026-10-20T02:20:02.4772120Z 100% tests passed out of 2
+test (windows-latest)	Run ctest --test-dir build-static -C Release --output-on-failure	2026-10-20T02:20:42.6204625Z 100% tests passed out of 5
+test (macos-latest)	Run python -m unittest discover -s tests -p "test_*.py"	2026-10-20T02:16:42.4797370Z Ran 6 tests in 0.016s
+test (macos-latest)	Compare real-installer metadata and every valid member	2026-10-20T02:17:26.7295680Z PASS asus-soundmax-4570: format 9, 328 total / 54 valid members; all metadata and SHA-256 hashes match
+test (macos-latest)	Compare real-installer metadata and every valid member	2026-10-20T02:18:04.1812340Z PASS kodensha-jbeijing7-124: format 16, 143 total / 130 valid members; all metadata and SHA-256 hashes match
+test (macos-latest)	Compare real-installer metadata and every valid member	2026-10-20T02:18:09.5645370Z PASS asus-realtek-lan-105: format 21, 153 total / 75 valid members; all metadata and SHA-256 hashes match
+test (macos-latest)	Compare real-installer metadata and every valid member	2026-10-20T02:18:10.6172490Z PASS sony-sfcardviewer-264: format 26, 33 total / 20 valid members; all metadata and SHA-256 hashes match
+test (macos-latest)	Run ctest --test-dir build -C Release --output-on-failure	2026-10-20T02:18:54.9075790Z 100% tests passed out of 5
+test (macos-latest)	Run ctest --test-dir build-consumer -C Release --output-on-failure	2026-10-20T02:19:02.9978620Z 100% tests passed out of 2
+test (macos-latest)	Run ctest --test-dir build-static -C Release --output-on-failure	2026-10-20T02:19:23.8490870Z 100% tests passed out of 5
+test (ubuntu-latest)	Run python -m unittest discover -s tests -p "test_*.py"	2026-10-20T02:16:26.7670290Z Ran 6 tests in 0.012s
+test (ubuntu-latest)	Compare real-installer metadata and every valid member	2026-10-20T02:17:13.5262922Z PASS asus-soundmax-4570: format 9, 328 total / 54 valid members; all metadata and SHA-256 hashes match
+test (ubuntu-latest)	Compare real-installer metadata and every valid member	2026-10-20T02:17:32.7201087Z PASS kodensha-jbeijing7-124: format 16, 143 total / 130 valid members; all metadata and SHA-256 hashes match
+test (ubuntu-latest)	Compare real-installer metadata and every valid member	2026-10-20T02:17:35.5918728Z PASS asus-realtek-lan-105: format 21, 153 total / 75 valid members; all metadata and SHA-256 hashes match
+test (ubuntu-latest)	Compare real-installer metadata and every valid member	2026-10-20T02:17:36.2338521Z PASS sony-sfcardviewer-264: format 26, 33 total / 20 valid members; all metadata and SHA-256 hashes match
+test (ubuntu-latest)	Reproduce independent C reference on Ubuntu	2026-10-20T02:18:07.5027967Z MATCH REFERENCE asus-soundmax-4570: 54 valid members, metadata and every SHA-256
+test (ubuntu-latest)	Reproduce independent C reference on Ubuntu	2026-10-20T02:18:08.8335533Z MATCH REFERENCE kodensha-jbeijing7-124: 130 valid members, metadata and every SHA-256
+test (ubuntu-latest)	Reproduce independent C reference on Ubuntu	2026-10-20T02:18:09.1118490Z MATCH REFERENCE asus-realtek-lan-105: 75 valid members, metadata and every SHA-256
+test (ubuntu-latest)	Reproduce independent C reference on Ubuntu	2026-10-20T02:18:09.1688012Z MATCH REFERENCE sony-sfcardviewer-264: 20 valid members, metadata and every SHA-256
+test (ubuntu-latest)	Run ctest --test-dir build -C Release --output-on-failure	2026-10-20T02:18:31.9301432Z 100% tests passed, 0 tests failed out of 5
+test (ubuntu-latest)	Run ctest --test-dir build-consumer -C Release --output-on-failure	2026-10-20T02:18:36.5139397Z 100% tests passed, 0 tests failed out of 2
+test (ubuntu-latest)	Run ctest --test-dir build-static -C Release --output-on-failure	2026-10-20T02:18:54.5108772Z 100% tests passed, 0 tests failed out of 5
+test (ubuntu-latest)	Verify relocated multiarch pkg-config static installation	2026-10-20T02:18:55.1070842Z MATCH C-ABI/native asus-soundmax-4570: 54 valid members, metadata and every SHA-256
+test (ubuntu-latest)	Verify relocated multiarch pkg-config static installation	2026-10-20T02:18:56.5029883Z MATCH C-ABI/native kodensha-jbeijing7-124: 130 valid members, metadata and every SHA-256
+test (ubuntu-latest)	Verify relocated multiarch pkg-config static installation	2026-10-20T02:18:56.7698416Z MATCH C-ABI/native asus-realtek-lan-105: 75 valid members, metadata and every SHA-256
+test (ubuntu-latest)	Verify relocated multiarch pkg-config static installation	2026-10-20T02:18:56.8218894Z MATCH C-ABI/native sony-sfcardviewer-264: 20 valid members, metadata and every SHA-256
+test (ubuntu-latest)	Verify relocated multiarch pkg-config static installation	2026-10-20T02:18:56.9698263Z MATCH C-ABI/callbacks asus-soundmax-4570: 54 valid members, metadata and every SHA-256
+test (ubuntu-latest)	Verify relocated multiarch pkg-config static installation	2026-10-20T02:18:58.4115725Z MATCH C-ABI/callbacks kodensha-jbeijing7-124: 130 valid members, metadata and every SHA-256
+test (ubuntu-latest)	Verify relocated multiarch pkg-config static installation	2026-10-20T02:18:58.6990524Z MATCH C-ABI/callbacks asus-realtek-lan-105: 75 valid members, metadata and every SHA-256
+test (ubuntu-latest)	Verify relocated multiarch pkg-config static installation	2026-10-20T02:18:58.7553534Z MATCH C-ABI/callbacks sony-sfcardviewer-264: 20 valid members, metadata and every SHA-256

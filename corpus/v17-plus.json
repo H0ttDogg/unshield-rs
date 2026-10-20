@@ -57,7 +57,7 @@
       },
       "results": {
         "rust_revision": "dd26dcb plus the 2026-10-19 corpus/C consumer integration; production Rust source unchanged",
-        "platform": "Windows x64/MSVC locally; Ubuntu, Windows, and macOS in CI; independent C reference on Linux",
+        "platform": "Ubuntu, Windows x64/MSVC, and macOS in CI; independent original-C reference rebuilt on Ubuntu; additional local Linux validation",
         "commands": [
           "python3 scripts/real-installers.py fetch",
           "python3 scripts/real-installers.py reference --extractor build-reference/reference-members",
@@ -75,8 +75,8 @@
           "CLI x was exercised on Linux. Windows rejects <Support> group paths; per-member library extraction remains the portable regression comparison.",
           "Some invalid records have name_offset=0; upstream name accessors decode table bytes as placeholder strings. These are not real member names or evidence of non-ASCII filename coverage."
         ],
-        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39350438927 (all three jobs passed)",
-        "tested_revision": "e8df8befa450503e6210cf653c3c89f37571d64a"
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354 (all three jobs passed)",
+        "tested_revision": "87c495e93f82c466eeeac9dc9ba32a4688840ecf"
       },
       "review": "Automated local reproduction completed 2026-10-19. Human cross-review remains pending.",
       "feature_evidence": "Every valid descriptor has flags=0x0004 (compressed only), volume=1 and link_flags=0. data2.cab is an empty 512-byte volume. All valid members extract from data1.cab without external files. Names in valid files, directories, components and groups contain only ASCII characters."
@@ -212,7 +212,7 @@
         "No split, obfuscated, or linked member coverage is claimed."
       ],
       "results": {
-        "platform": "Linux x86_64 locally; Ubuntu/Windows/macOS CI configured, execution pending",
+        "platform": "Ubuntu, Windows x64/MSVC, and macOS in CI; independent original-C reference rebuilt on Ubuntu; additional local Linux validation",
         "commands": [
           "python3 scripts/real-installers.py fetch sony-sfcardviewer-264",
           "python3 scripts/real-installers.py reference sony-sfcardviewer-264 --extractor build-reference/reference-members",
@@ -221,13 +221,14 @@
           "ctest --test-dir build-static -C Release --output-on-failure",
           "ctest --test-dir build-consumer -C Release --output-on-failure"
         ],
-        "status": "Passed locally: 20 valid members match independent C metadata, size, and SHA-256 through Rust and native/callback C shared, static, and installed libraries. The independent group record has a genuine Japanese name and contains six valid members; the harness checks these references even without downloaded inputs.",
+        "status": "Passed on Ubuntu, Windows, and macOS: all 20 valid members match independent C metadata, size, and SHA-256 through Rust and native/callback C shared, static, and installed libraries. The independent group record has a genuine Japanese name and references six valid members; the harness checks these references even without downloaded inputs. Ubuntu rebuilt and reproduced the independent C reference.",
         "failures": [],
         "skips": [],
         "limitations": [
-          "The non-ASCII text belongs to a real file-group record, not member basenames or directory records.",
-          "Cross-platform CI execution is pending."
-        ]
+          "The non-ASCII text belongs to a real file-group record, not member basenames or directory records."
+        ],
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354 (all three jobs passed)",
+        "tested_revision": "87c495e93f82c466eeeac9dc9ba32a4688840ecf"
       }
     }
   ]

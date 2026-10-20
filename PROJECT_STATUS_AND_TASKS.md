@@ -25,14 +25,16 @@ The Kodensha JBeijing7 1.24 update adds format-16 application/dictionary
 payloads, a genuine CP932 Japanese filename, and 11 valid previous-file links,
 including multi-step chains. All 130 valid members match independent C metadata
 and SHA-256 output through Rust and native/callback C shared, static, and installed
-libraries on Linux.
+libraries on Ubuntu, Windows, and macOS.
 
 Sony SFCard Viewer 2.6.4 adds format 26 with a genuine Japanese UTF-16LE
 file-group name referencing six valid members. All 20 valid members match the
 independent C reference through Rust and native/callback C shared, static, and
-installed libraries on Linux. Its file basenames and directory names are ASCII;
+installed libraries on Ubuntu, Windows, and macOS. Its file basenames and directory names are ASCII;
 the Unicode evidence is the referenced file-group record. The extended
-three-platform CI is configured but has not run.
+[three-platform CI passed at 87c495e](https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354)
+with all four packages required. Windows exposed an inventory text-encoding
+defect; explicit UTF-8 JSON I/O and a regression test fixed it before this run.
 
 The existing four older upstream datasets still pass all 610 expected output
 hashes: Avigo Manager 51, Baldur's Gate patch 132, The Feeble Files Spanish 319,
@@ -54,7 +56,7 @@ not imply that a named person has reviewed or signed off on it.
 | T4 | Repeatable corpus harness | Farhan | Shoib | Implemented: pinned fetch, independent expected JSON, Rust comparison, required-sample enforcement, tooling regression tests. |
 | T5 | Real-input C compatibility | Shoib | Farhan | Passed locally and on all three CI platforms: native I/O and callbacks, shared/static/installed libraries, every valid member. |
 | T6 | Compatibility fixes discovered by T2-T5 | Shoib | Farhan | No production mismatch found in selected real inputs; no parser/extractor fix needed. Farhan supplies regression tests for future failures. |
-| T7 | Cross-platform CI | Farhan | Shoib | Existing two-package run passed on Ubuntu/Windows/macOS. The linked-member and Unicode-group samples are now required in the same matrix; execution of that extension is pending. |
+| T7 | Cross-platform CI | Farhan | Shoib | Completed: all four required packages passed on Ubuntu/Windows/macOS at `87c495e`, including linked-member and Unicode-group evidence, Rust, CLI list/test, and native/callback shared/static/installed C consumers. Ubuntu independently rebuilt and reproduced the original C reference. |
 | T8 | Coverage report | Shoib | Farhan | Written: exact versions/counts, features, failures/skips, commands, and limitations. |
 | T9 | Focused callback Miri tests | Farhan | Shoib | Completed in pulled changes: three tests passed on 2026-10-17; original log and linked report retained. |
 | T10 | Review FFI assumptions against new tests | Shoib | Farhan | Table copying, userdata lifetime, directory-entry copying, cleanup, callback counts/offsets, and synchronization contract checked; boundary unchanged. Human cross-review pending. |
@@ -131,10 +133,12 @@ sample contains split or obfuscated members. Sony format 26 adds a Japanese
 file-group name; format 21 has only ASCII names. Generated fixtures cover additional features; those are not
 substitutes for real-format evidence.
 
-Remaining implementation/validation work for Farhan: execute the extended CI.
-Shoib's T2-03 needs a real member crossing
-volumes. R1 and T10 still require human cross-review. T6-N applies when a
-reproducible defect is found; none was discovered in these four packages.
+Farhan's implementation and automated validation tasks are complete.
+Shoib's T2-03 still needs a real member crossing
+volumes. R1 and T10 still require human cross-review. The Windows inventory
+encoding defect found in CI is fixed and regression-tested. T6-N applies to
+additional reproducible defects; no production parser/extractor mismatch was
+discovered in these four packages.
 F1 remains deferred.
 
 The Rust CLI is a convenience interface, not an exact reproduction of C CLI

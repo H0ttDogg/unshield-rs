@@ -59,7 +59,7 @@
       },
       "results": {
         "rust_revision": "dd26dcb plus the 2026-10-19 corpus/C consumer integration; production Rust source unchanged",
-        "platform": "Windows x64/MSVC locally; Ubuntu, Windows, and macOS in CI; independent C reference on Linux",
+        "platform": "Ubuntu, Windows x64/MSVC, and macOS in CI; independent original-C reference rebuilt on Ubuntu; additional local Linux validation",
         "commands": [
           "python3 scripts/real-installers.py fetch",
           "python3 scripts/real-installers.py reference --extractor build-reference/reference-members",
@@ -76,8 +76,8 @@
           "274 invalid records are counted and checked for validity, not extracted.",
           "Windows CLI path restrictions apply to <Support> groups; per-member library extraction avoids archived output paths."
         ],
-        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39350438927 (all three jobs passed)",
-        "tested_revision": "e8df8befa450503e6210cf653c3c89f37571d64a"
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354 (all three jobs passed)",
+        "tested_revision": "87c495e93f82c466eeeac9dc9ba32a4688840ecf"
       },
       "review": "Automated local reproduction completed 2026-10-19. Human cross-review remains pending.",
       "feature_evidence": "Every valid descriptor has flags=0x0004 (compressed only), volume=1 and link_flags=0. data2.cab is an empty 512-byte volume. All valid members extract from data1.cab without external files. Names in valid files, directories, components and groups contain only ASCII characters."
@@ -143,23 +143,24 @@
       },
       "feature_evidence": "11 valid members have the previous-file bit set in link_flags, including chains 138 -> 135 -> 132 -> 130 and 139 -> 136 -> 133 -> 131. Link fields are at descriptor offsets 0x4c, 0x50, 0x54; the descriptor table contains 143 records of 0x57 bytes. Member 34 contains a genuine CP932 Japanese TeamViewer URL filename. No obfuscation is claimed.",
       "results": {
-        "platform": "Linux x86_64 locally; extended Ubuntu/Windows/macOS CI configured, not executed",
+        "platform": "Ubuntu, Windows x64/MSVC, and macOS in CI; independent original-C reference rebuilt on Ubuntu; additional local Linux validation",
         "commands": [
           "python3 scripts/real-installers.py fetch kodensha-jbeijing7-124",
           "python3 scripts/real-installers.py reference kodensha-jbeijing7-124 --extractor build-reference/reference-members",
-          "UNSHIELD_REQUIRE_REAL_INSTALLERS=asus-soundmax-4570,asus-realtek-lan-105,kodensha-jbeijing7-124 cargo test --locked --test real_installers -- --nocapture",
+          "UNSHIELD_REQUIRE_REAL_INSTALLERS=asus-soundmax-4570,asus-realtek-lan-105,kodensha-jbeijing7-124,sony-sfcardviewer-264 cargo test --locked --test real_installers -- --nocapture",
           "ctest --test-dir build -C Release --output-on-failure",
           "ctest --test-dir build-static -C Release --output-on-failure",
           "ctest --test-dir build-consumer -C Release --output-on-failure"
         ],
-        "status": "Passed locally: all 130 valid members match independently recorded C metadata, expanded sizes, and SHA-256 through Rust and native/callback C shared, static, and installed consumers. Rust also checks raw linked-member descriptor evidence.",
+        "status": "Passed on Ubuntu, Windows, and macOS: all 130 valid members match independently recorded C metadata, expanded sizes, and SHA-256 through Rust and native/callback C shared, static, and installed consumers. Rust checks raw linked-member descriptor evidence; Ubuntu rebuilt the independent C reference and reproduced every output.",
         "failures": [],
         "skips": [],
         "limitations": [
-          "Cross-platform CI for this added sample has not run.",
           "Narrow CP932 names do not establish v17+ Unicode filename coverage.",
           "No split-member or obfuscation claim."
-        ]
+        ],
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354 (all three jobs passed)",
+        "tested_revision": "87c495e93f82c466eeeac9dc9ba32a4688840ecf"
       },
       "limitations": [
         "Format 16 cannot satisfy the v17+ non-ASCII-name task.",

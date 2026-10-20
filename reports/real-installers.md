@@ -28,15 +28,15 @@ contents are installer support resources; driver payloads and Microsoft CAB
 files elsewhere in their ZIPs are outside this comparison. JBeijing7 contains
 actual application and dictionary payloads. The installers were never run.
 
-| Feature | Format 9 | Format 16 | Format 21 |
-| --- | --- | --- | --- |
-| Compressed members | Present: all 54 | Present: all 130 | Present: all 75 |
-| UTF-16LE name storage | Absent | Absent | Present |
-| Non-ASCII names | Absent | Present: member 34, CP932 | Absent |
-| Members split across volumes | Absent | Absent | Absent |
-| Obfuscated members | Absent | Absent | Absent |
-| Linked members | Absent | Present: 11 previous-file links | Absent |
-| External CAB payload files | Absent | Absent | Absent |
+| Feature | Format 9 | Format 16 | Format 21 | Format 26 |
+| --- | --- | --- | --- | --- |
+| Compressed members | Present: all 54 | Present: all 130 | Present: all 75 | Present: all 20 |
+| UTF-16LE name storage | Absent | Absent | Present | Present |
+| Non-ASCII names | Absent | Present: member 34, CP932 | Absent | Present: file-group record 8 |
+| Members split across volumes | Absent | Absent | Absent | Absent |
+| Obfuscated members | Absent | Absent | Absent | Absent |
+| Linked members | Absent | Present: 11 previous-file links | Absent | Absent |
+| External CAB payload files | Absent | Absent | Absent | Absent |
 
 All valid ASUS descriptors have compressed-only flags `0x0004`, volume 1, and no link
 flags. Each complete ASUS input set includes `data1.cab`, `data1.hdr`, and an empty
@@ -83,10 +83,31 @@ comparison, a new Rust build, and native/callback C comparisons. The reference
 and C consumer executables were reused from the separately built local trees;
 this was not a new cross-platform build. The full suite and reproduction/CTest
 output are retained in [the local evidence log](2026-10-19-linked-members.log).
+Retained local logs have trailing whitespace removed.
 
-The workflow now requires JBeijing7 and SFCard Viewer on Ubuntu, Windows, and
-macOS and retains their CLI logs. That extended CI has not been run; the linked run below covers
-only the original two ASUS packages.
+The workflow requires all four packages on Ubuntu, Windows, and macOS and
+retains their CLI logs. The
+[extended run at 87c495e](https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354)
+passed all three jobs. Every platform fetched and hash-verified all four
+packages, compared all 279 valid members through Rust, exercised CLI list/test,
+and passed native/callback shared, static, and installed C consumers. Shared and
+static CTest suites each passed five checks; installed real-input CTest passed
+two checks, followed by the all-public-functions installed consumer. Ubuntu also
+performed full CLI extraction, rebuilt the pinned original C reference and
+reproduced all four expectation sets, and passed relocated static pkg-config
+consumers in both I/O modes. No required sample was skipped.
+
+The [first expanded run](https://github.com/H0ttDogg/unshield-rs/actions/runs/39357286096)
+passed Ubuntu and macOS but exposed a Windows tooling defect before downloads:
+Python read the UTF-8 inventory using the Windows CP1252 default. JSON file I/O
+now specifies UTF-8. A regression test simulates that default, and all six Python
+tests passed on every platform in the successful run. This required no production
+Rust change. Selected output is retained in
+[the four-package CI log](2026-10-19-four-package-ci.log); full output and
+comparison/CTest artifacts remain linked from the workflow run.
+
+The following Windows-local and CI evidence predates the two added samples and
+covers only the original ASUS pair.
 
 Local Windows x64/MSVC validation on 2026-10-19 passed:
 
@@ -161,11 +182,11 @@ See [the retained local output](2026-10-19-unicode-groups.log).
 ## Limits and next samples
 
 This closes the first milestone of one authentic sample per newer-format family.
-It does not establish support for every version between 6 and 21. JBeijing7
+It does not establish support for every version between 6 and 26. JBeijing7
 adds another producer, actual application/dictionary payloads, narrow non-ASCII
 names, and genuine links. It closes T2-02 and the linked-member option of T3-03.
 T3-02 is completed by the Sony format-26 UTF-16LE file-group record described
-below. Non-ASCII file basenames and directory names remain additional coverage
+above. Non-ASCII UTF-16LE file basenames and directory names remain additional coverage
 gaps. T2-03 still needs a genuine member crossing cabinet volumes.
 
 Earlier archive-only candidate inspection ruled out these inputs:
