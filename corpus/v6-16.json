@@ -59,7 +59,7 @@
       },
       "results": {
         "rust_revision": "dd26dcb plus the 2026-10-19 corpus/C consumer integration; production Rust source unchanged",
-        "platform": "Windows x64/MSVC locally; Ubuntu, Windows, and macOS in CI; independent C reference on Linux",
+        "platform": "Ubuntu, Windows x64/MSVC, and macOS in CI; independent original-C reference rebuilt on Ubuntu; additional local Linux validation",
         "commands": [
           "python3 scripts/real-installers.py fetch",
           "python3 scripts/real-installers.py reference --extractor build-reference/reference-members",
@@ -76,11 +76,461 @@
           "274 invalid records are counted and checked for validity, not extracted.",
           "Windows CLI path restrictions apply to <Support> groups; per-member library extraction avoids archived output paths."
         ],
-        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39350438927 (all three jobs passed)",
-        "tested_revision": "e8df8befa450503e6210cf653c3c89f37571d64a"
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39361465228 (all three jobs passed)",
+        "tested_revision": "e6ab36793ac072e1e96322309977bdec944a4f64"
       },
       "review": "Automated local reproduction completed 2026-10-19. Human cross-review remains pending.",
       "feature_evidence": "Every valid descriptor has flags=0x0004 (compressed only), volume=1 and link_flags=0. data2.cab is an empty 512-byte volume. All valid members extract from data1.cab without external files. Names in valid files, directories, components and groups contain only ASCII characters."
+    },
+    {
+      "id": "kodensha-jbeijing7-124",
+      "status": "validated",
+      "product": "Kodensha JBeijing7 update",
+      "release": "1.24 (2015-01-21)",
+      "source_url": "https://www.kodensha.jp/sstec/update/jb/jb7up.exe",
+      "source_page": "https://www.kodensha.jp/sstec/update/jb7up.html",
+      "retrieved": "2026-10-19",
+      "installer": {
+        "path": "installer.exe",
+        "sha256": "8d16a987defdf988da032ec9bcd749a24ed093872c068f89219796c40dc25f28"
+      },
+      "redistribution": "Not established; download from vendor, do not bundle binaries.",
+      "preparation": {
+        "kind": "embedded",
+        "instructions": "Copy only the three hash-pinned verbatim byte ranges listed in inputs. Offsets are zero-based; sizes come from the launcher member headers (NUL-separated name, Disk1 path, version, decimal size immediately before each payload). Do not execute the installer."
+      },
+      "inputs": [
+        {
+          "path": "data1.cab",
+          "offset": 817261,
+          "size": 513208,
+          "sha256": "61e188ec43568774fa872cef3a97f7287dcf92642ae5e735a8a26d939968bada"
+        },
+        {
+          "path": "data1.hdr",
+          "offset": 1330509,
+          "size": 26602,
+          "sha256": "bbb766c78e47fb0c263f52f7ed78dc08079bdbec3df1ac44da1712470305f385"
+        },
+        {
+          "path": "data2.cab",
+          "offset": 1357155,
+          "size": 126144698,
+          "sha256": "6b26ce49eb4fba4848844638566046a7a5ea17d6d32da6a3211abc293ddf1ba2"
+        }
+      ],
+      "entry_cab": "data1.cab",
+      "version_file": "data1.hdr",
+      "raw_version": 33556032,
+      "major_version": 16,
+      "version_evidence": "ISc( signature; raw little-endian version at offset 4 is 0x02000640. Upstream lib/helper.c: high byte 2 => low 16 bits / 100 = 16. This is a narrow-name cabinet, not Unicode coverage.",
+      "compression": "new",
+      "reference": {
+        "revision": "cbed3d19ef9cdf4e5fb86b9d65e48f1bf8d539db",
+        "build": "See corpus/README.md: separately built pinned original C static library and reference-members.",
+        "command": "python3 scripts/real-installers.py reference kodensha-jbeijing7-124 --extractor build-reference/reference-members"
+      },
+      "expected": "corpus/expected/kodensha-jbeijing7-124.json",
+      "expected_valid_members": 130,
+      "features": {
+        "unicode": "absent",
+        "non_ascii_names": "present",
+        "split_volumes": "absent",
+        "compression": "present",
+        "obfuscation": "absent",
+        "links": "present",
+        "external_files": "absent"
+      },
+      "feature_evidence": "11 valid members have the previous-file bit set in link_flags, including chains 138 -> 135 -> 132 -> 130 and 139 -> 136 -> 133 -> 131. Link fields are at descriptor offsets 0x4c, 0x50, 0x54; the descriptor table contains 143 records of 0x57 bytes. Member 34 contains a genuine CP932 Japanese TeamViewer URL filename. No obfuscation is claimed.",
+      "results": {
+        "platform": "Ubuntu, Windows x64/MSVC, and macOS in CI; independent original-C reference rebuilt on Ubuntu; additional local Linux validation",
+        "commands": [
+          "python3 scripts/real-installers.py fetch kodensha-jbeijing7-124",
+          "python3 scripts/real-installers.py reference kodensha-jbeijing7-124 --extractor build-reference/reference-members",
+          "UNSHIELD_REQUIRE_REAL_INSTALLERS=asus-soundmax-4570,asus-realtek-lan-105,kodensha-jbeijing7-124,sony-sfcardviewer-264 cargo test --locked --test real_installers -- --nocapture",
+          "ctest --test-dir build -C Release --output-on-failure",
+          "ctest --test-dir build-static -C Release --output-on-failure",
+          "ctest --test-dir build-consumer -C Release --output-on-failure"
+        ],
+        "status": "Passed on Ubuntu, Windows, and macOS: all 130 valid members match independently recorded C metadata, expanded sizes, and SHA-256 through Rust and native/callback C shared, static, and installed consumers. Rust checks raw linked-member descriptor evidence; Ubuntu rebuilt the independent C reference and reproduced every output.",
+        "failures": [],
+        "skips": [],
+        "limitations": [
+          "Narrow CP932 names do not establish v17+ Unicode filename coverage.",
+          "No split-member or obfuscation claim."
+        ],
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39361465228 (all three jobs passed)",
+        "tested_revision": "e6ab36793ac072e1e96322309977bdec944a4f64"
+      },
+      "limitations": [
+        "Format 16 cannot satisfy the v17+ non-ASCII-name task.",
+        "Non-ASCII narrow name bytes are CP932; the C API preserves them verbatim.",
+        "Archived paths are never used for extraction destinations: output uses member indices."
+      ],
+      "descriptor_evidence": [
+        {
+          "index": 63,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 128,
+          "link_flags": 2
+        },
+        {
+          "index": 79,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 127,
+          "link_flags": 2
+        },
+        {
+          "index": 80,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 129,
+          "link_flags": 2
+        },
+        {
+          "index": 104,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 123,
+          "link_flags": 2
+        },
+        {
+          "index": 123,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 104,
+          "link_next": 0,
+          "link_flags": 1
+        },
+        {
+          "index": 127,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 79,
+          "link_next": 0,
+          "link_flags": 1
+        },
+        {
+          "index": 128,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 63,
+          "link_next": 0,
+          "link_flags": 1
+        },
+        {
+          "index": 129,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 80,
+          "link_next": 0,
+          "link_flags": 1
+        },
+        {
+          "index": 130,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 132,
+          "link_flags": 2
+        },
+        {
+          "index": 131,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 133,
+          "link_flags": 2
+        },
+        {
+          "index": 132,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 130,
+          "link_next": 135,
+          "link_flags": 3
+        },
+        {
+          "index": 133,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 131,
+          "link_next": 136,
+          "link_flags": 3
+        },
+        {
+          "index": 135,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 132,
+          "link_next": 138,
+          "link_flags": 3
+        },
+        {
+          "index": 136,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 133,
+          "link_next": 139,
+          "link_flags": 3
+        },
+        {
+          "index": 137,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 140,
+          "link_flags": 2
+        },
+        {
+          "index": 138,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 135,
+          "link_next": 0,
+          "link_flags": 1
+        },
+        {
+          "index": 139,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 136,
+          "link_next": 0,
+          "link_flags": 1
+        },
+        {
+          "index": 140,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 137,
+          "link_next": 0,
+          "link_flags": 1
+        }
+      ]
+    },
+    {
+      "id": "epson-twain-571a",
+      "status": "validated",
+      "product": "Epson Perfection Series TWAIN Driver",
+      "release": "5.71A (Rev.F), 2002-12-10",
+      "source_url": "https://ftp.epson.com/drivers/epson10609.exe",
+      "source_page": "https://epson.com/Support/Scanners/Perfection-Series/Epson-Perfection-1260/s/SPT_B11B154011?review-filter=Windows+98",
+      "retrieved": "2026-10-19",
+      "installer": {
+        "path": "installer.exe",
+        "sha256": "40fff4d212cd00d15a5b46d321b335d6e567e1f9842e42c88005c0da882d1723"
+      },
+      "redistribution": "Not established; fetch from the vendor, do not bundle installer binaries or extracted payloads.",
+      "preparation": {
+        "kind": "zip",
+        "instructions": "Read the self-extracting ZIP as archive data. Copy only the seven listed CAB/HDR members using archive_path; retain all six numbered cabinet volumes. Do not run the executable."
+      },
+      "inputs": [
+        {
+          "path": "data1.cab",
+          "archive_path": "DATA1.CAB",
+          "sha256": "122f987e1d8aa26b16f4870bcb0128b966a375f613c189c84c42b8e4e695e6d5"
+        },
+        {
+          "path": "data1.hdr",
+          "archive_path": "DATA1.HDR",
+          "sha256": "3ec6775754faae947349e7a13f48736e9d56cfa8f4ddcae1d5414ba173e04398"
+        },
+        {
+          "path": "data2.cab",
+          "archive_path": "DATA2.CAB",
+          "sha256": "596967da2fc865313e5d523942a7e0b4e2f8c8caf874934d47c4769d689f3756"
+        },
+        {
+          "path": "data3.cab",
+          "archive_path": "DATA3.CAB",
+          "sha256": "9e8d21eac592ec204efd101f327c85699224dc4f586d4c4c2990480541662422"
+        },
+        {
+          "path": "data4.cab",
+          "archive_path": "DATA4.CAB",
+          "sha256": "3ad71fe2abae9e0c19a33bdd082e6d3c1169166bedc8ba50ed9acfca33741196"
+        },
+        {
+          "path": "data5.cab",
+          "archive_path": "DATA5.CAB",
+          "sha256": "9829dd92d362f65715b36f67f5952242b9738c2884c0e6ca8e1e02ac41efb8db"
+        },
+        {
+          "path": "data6.cab",
+          "archive_path": "DATA6.CAB",
+          "sha256": "fc675d7f5cc4fceefaca8d1a47a20d55cbd404d488f96875e8a93419634ae659"
+        }
+      ],
+      "entry_cab": "data1.cab",
+      "version_file": "data1.hdr",
+      "raw_version": 16801804,
+      "major_version": 6,
+      "version_evidence": "ISc( signature; raw little-endian version 0x0100600c at offset 4. Upstream high-byte-1 rule: (version >> 12) & 15 = 6.",
+      "compression": "new",
+      "reference": {
+        "revision": "cbed3d19ef9cdf4e5fb86b9d65e48f1bf8d539db",
+        "build": "See corpus/README.md: separately built pinned original C static library and reference-members.",
+        "command": "python3 scripts/real-installers.py reference epson-twain-571a --extractor build-reference/reference-members"
+      },
+      "expected": "corpus/expected/epson-twain-571a.json",
+      "expected_valid_members": 170,
+      "features": {
+        "unicode": "absent",
+        "non_ascii_names": "absent",
+        "split_volumes": "present",
+        "compression": "present",
+        "obfuscation": "absent",
+        "links": "present",
+        "external_files": "absent"
+      },
+      "feature_evidence": "Four physical members (30, 47, 55, 63) have FILE_SPLIT|FILE_COMPRESSED flags 0x0005 and positive stored segments in consecutive volumes 2/3, 3/4, 4/5, and 5/6. Segment byte counts sum to the descriptors' complete compressed sizes. Members 151 and 175 reuse split member 30 through previous-file links and are aliases, not additional physical splits. All 170 valid members are compressed; 46 valid records have previous-file links. All valid file names and directory/component/group names are ASCII.",
+      "descriptor_evidence": [
+        {
+          "index": 30,
+          "flags": 5,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 151,
+          "link_flags": 2
+        },
+        {
+          "index": 47,
+          "flags": 5,
+          "volume": 3,
+          "link_previous": 0,
+          "link_next": 0,
+          "link_flags": 0
+        },
+        {
+          "index": 55,
+          "flags": 5,
+          "volume": 4,
+          "link_previous": 0,
+          "link_next": 0,
+          "link_flags": 0
+        },
+        {
+          "index": 63,
+          "flags": 5,
+          "volume": 5,
+          "link_previous": 0,
+          "link_next": 0,
+          "link_flags": 0
+        },
+        {
+          "index": 151,
+          "flags": 5,
+          "volume": 6,
+          "link_previous": 30,
+          "link_next": 175,
+          "link_flags": 3
+        },
+        {
+          "index": 175,
+          "flags": 5,
+          "volume": 6,
+          "link_previous": 151,
+          "link_next": 0,
+          "link_flags": 1
+        }
+      ],
+      "split_evidence": [
+        {
+          "index": 30,
+          "segments": [
+            {
+              "path": "data2.cab",
+              "volume": 2,
+              "offset": 348827,
+              "stored_size": 14693
+            },
+            {
+              "path": "data3.cab",
+              "volume": 3,
+              "offset": 512,
+              "stored_size": 89214
+            }
+          ]
+        },
+        {
+          "index": 47,
+          "segments": [
+            {
+              "path": "data3.cab",
+              "volume": 3,
+              "offset": 1336221,
+              "stored_size": 121443
+            },
+            {
+              "path": "data4.cab",
+              "volume": 4,
+              "offset": 512,
+              "stored_size": 63953
+            }
+          ]
+        },
+        {
+          "index": 55,
+          "segments": [
+            {
+              "path": "data4.cab",
+              "volume": 4,
+              "offset": 1349161,
+              "stored_size": 108503
+            },
+            {
+              "path": "data5.cab",
+              "volume": 5,
+              "offset": 512,
+              "stored_size": 75930
+            }
+          ]
+        },
+        {
+          "index": 63,
+          "segments": [
+            {
+              "path": "data5.cab",
+              "volume": 5,
+              "offset": 1358526,
+              "stored_size": 99138
+            },
+            {
+              "path": "data6.cab",
+              "volume": 6,
+              "offset": 512,
+              "stored_size": 85395
+            }
+          ]
+        }
+      ],
+      "limitations": [
+        "Split evidence counts four distinct physical payloads; linked aliases 151 and 175 reuse member 30.",
+        "Format 6 uses narrow names; no Unicode, obfuscation, or external-payload coverage claimed."
+      ],
+      "results": {
+        "platform": "Ubuntu, Windows x64/MSVC, and macOS in CI; independent original-C reference rebuilt on Ubuntu; additional local Linux validation",
+        "commands": [
+          "python3 scripts/real-installers.py fetch epson-twain-571a",
+          "python3 scripts/real-installers.py reference epson-twain-571a --extractor build-reference/reference-members",
+          "cargo test --locked --test real_installers -- --nocapture",
+          "ctest --test-dir build -C Release --output-on-failure",
+          "ctest --test-dir build-static -C Release --output-on-failure",
+          "ctest --test-dir build-consumer -C Release --output-on-failure"
+        ],
+        "status": "Passed on Ubuntu, Windows, and macOS: all 170 valid members match independent original-C metadata, expanded size, and SHA-256 through Rust and native/callback C shared, static, and installed libraries. Four physical split members have pinned positive segments, complete compressed sizes, observed opens of both volumes, and missing-continuation rejection. Ubuntu rebuilt the pinned original C reference and reproduced all expectations.",
+        "failures": [],
+        "skips": [],
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39361465228 (all three jobs passed)",
+        "tested_revision": "e6ab36793ac072e1e96322309977bdec944a4f64"
+      }
     }
   ]
 }

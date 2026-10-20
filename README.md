@@ -157,9 +157,31 @@ cargo test --locked --test real_installers -- --nocapture
 ```
 
 Format 21 uses UTF-16LE storage, but neither sample contains non-ASCII names.
-Other versions and newer real split/obfuscated/linked member coverage remain open.
-CI requires both packages on Linux, macOS, and Windows, including C callbacks,
-and rebuilds the independent reference on Ubuntu. See the report for run evidence.
+A third vendor package, **JBeijing7 1.24 (format 16)**, adds **130 valid
+members**, application/dictionary payloads, a genuine Japanese CP932 filename,
+and **11 previous-file links**, including chains. Every member matches the
+independent C reference through Rust and native/callback C shared, static, and
+installed consumers on Ubuntu, Windows, and macOS. Corpus preparation reads hash-pinned byte ranges
+without executing its installer.
+
+A fourth package, **Sony SFCard Viewer 2.6.4 (format 26)**, adds a genuine
+Japanese UTF-16LE file-group name referencing six valid members. All **20**
+valid members match independent C metadata and SHA-256 output through Rust and
+native/callback C shared, static, and installed libraries on Ubuntu, Windows, and macOS. Member
+basenames and directories are ASCII; the non-ASCII evidence is the actual group
+name.
+
+A fifth vendor package, **Epson TWAIN 5.71A Rev.F (format 6)**, adds **170 valid
+members** and **four physical split members** spanning consecutive cabinet
+volumes. Tests verify segment boundaries, observe both volumes being opened,
+reject a missing continuation, and compare full output against independent C
+hashes. Rust and native/callback C shared, static, and installed comparisons pass
+on Ubuntu, Windows, and macOS. Combined coverage is **1,059** file content checks across nine datasets/packages.
+
+Non-ASCII UTF-16LE member basenames and real obfuscated-member coverage remain open.
+CI requires all five packages on Linux, macOS, and Windows, including C callbacks,
+and rebuilds the independent reference on Ubuntu. All three jobs
+[passed with all five packages](https://github.com/H0ttDogg/unshield-rs/actions/runs/39361465228).
 Compatibility
 is tied to the pinned header/API; this is not a claim of exhaustive compatibility
 with every InstallShield producer or undocumented format variant.

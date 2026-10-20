@@ -3,12 +3,17 @@
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::{
-    collections::HashSet,
+    cell::RefCell,
+    collections::{HashMap, HashSet},
     fs,
     io::{self, Read, Write},
     path::{Component, Path, PathBuf},
+    rc::Rc,
 };
-use unshield::{Archive, Compression};
+use unshield::{
+    io::{CabinetIo, NativeIo, ReadSeek},
+    Archive, Compression, FILE_COMPRESSED, FILE_OBFUSCATED, FILE_SPLIT,
+};
 
 const REFERENCE: &str = "cbed3d19ef9cdf4e5fb86b9d65e48f1bf8d539db";
 
@@ -38,6 +43,37 @@ struct Sample {
     compression: String,
     expected: String,
     expected_valid_members: usize,
+    features: HashMap<String, String>,
+    descriptor_evidence: Vec<DescriptorEvidence>,
+    name_evidence: Vec<NameEvidence>,
+    split_evidence: Vec<SplitEvidence>,
+}
+#[derive(Deserialize)]
+struct SplitEvidence {
+    index: usize,
+    segments: Vec<VolumeSegment>,
+}
+#[derive(Deserialize)]
+struct VolumeSegment {
+    path: String,
+    volume: u16,
+    offset: u64,
+    stored_size: u64,
+}
+#[derive(Deserialize)]
+struct NameEvidence {
+    group_index: usize,
+    name: String,
+    valid_members: Vec<usize>,
+}
+#[derive(Deserialize)]
+struct DescriptorEvidence {
+    index: usize,
+    flags: u16,
+    volume: u16,
+    link_previous: u32,
+    link_next: u32,
+    link_flags: u8,
 }
 #[derive(Deserialize)]
 struct Expected {
@@ -110,6 +146,30 @@ impl Write for HashWriter {
     }
 }
 
+#[derive(Default)]
+struct VolumeProbe {
+    opened: RefCell<Vec<PathBuf>>,
+    denied: RefCell<Option<PathBuf>>,
+}
+impl CabinetIo for VolumeProbe {
+    fn open(&self, path: &Path) -> io::Result<Box<dyn ReadSeek>> {
+        self.opened.borrow_mut().push(path.to_owned());
+        if self.denied.borrow().as_deref() == Some(path) {
+            return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                "missing continuation volume",
+            ));
+        }
+        NativeIo.open(path)
+    }
+    fn create(&self, path: &Path) -> io::Result<Box<dyn Write>> {
+        NativeIo.create(path)
+    }
+    fn find(&self, path: &Path) -> io::Result<PathBuf> {
+        NativeIo.find(path)
+    }
+}
+
 fn inventories() -> Vec<Inventory> {
     let mut ids = HashSet::new();
     ["v6-16", "v17-plus"]
@@ -157,6 +217,42 @@ fn inventories() -> Vec<Inventory> {
                 assert_eq!(
                     expected.files.iter().filter(|f| f.valid).count(),
                     sample.expected_valid_members
+                );
+                for evidence in &sample.name_evidence {
+                    assert!(sample.major_version >= 17);
+                    assert!(!evidence.name.is_ascii());
+                    let group = &expected.groups[evidence.group_index];
+                    assert_eq!(group.name_hex, hex(evidence.name.as_bytes()));
+                    assert!(group.first_file >= 0 && group.last_file >= group.first_file);
+                    let valid_members = expected.files
+                        [group.first_file as usize..=group.last_file as usize]
+                        .iter()
+                        .filter(|f| f.valid)
+                        .map(|f| f.index)
+                        .collect::<Vec<_>>();
+                    assert!(!valid_members.is_empty());
+                    assert_eq!(valid_members, evidence.valid_members);
+                }
+                for evidence in &sample.split_evidence {
+                    assert!(sample.major_version >= 6);
+                    assert!(expected.files[evidence.index].valid);
+                    assert!(evidence.segments.len() >= 2);
+                    let mut paths = HashSet::new();
+                    for segment in &evidence.segments {
+                        relative(&segment.path);
+                        assert!(sample.inputs.iter().any(|i| i.path == segment.path));
+                        assert!(paths.insert(&segment.path));
+                        assert!(segment.offset >= 84 && segment.stored_size > 0);
+                    }
+                }
+                assert_eq!(
+                    sample.features.get("split_volumes").map(String::as_str),
+                    Some(if sample.split_evidence.is_empty() {
+                        "absent"
+                    } else {
+                        "present"
+                    }),
+                    "split coverage requires a valid member with segments in multiple inputs"
                 );
                 for (index, file) in expected.files.iter().enumerate() {
                     assert_eq!(file.index, index, "expected records must cover every index");
@@ -229,6 +325,117 @@ fn real_installers() {
             );
             let archive = Archive::open(dir.join(&sample.entry_cab)).unwrap();
             assert_eq!(archive.metadata().major_version, sample.major_version);
+            let valid = archive.files().iter().filter(|f| f.is_valid());
+            let non_ascii_names = valid.clone().any(|f| !f.name_bytes.is_ascii())
+                || archive
+                    .metadata()
+                    .directory_bytes
+                    .iter()
+                    .any(|n| !n.is_ascii())
+                || archive
+                    .metadata()
+                    .components
+                    .iter()
+                    .any(|c| !c.name_bytes.is_ascii())
+                || archive
+                    .metadata()
+                    .file_groups
+                    .iter()
+                    .any(|g| !g.name_bytes.is_ascii());
+            for (feature, present) in [
+                ("unicode", sample.major_version >= 17),
+                ("non_ascii_names", non_ascii_names),
+                (
+                    "compression",
+                    valid.clone().any(|f| f.flags & FILE_COMPRESSED != 0),
+                ),
+                (
+                    "obfuscation",
+                    valid.clone().any(|f| f.flags & FILE_OBFUSCATED != 0),
+                ),
+                ("links", valid.clone().any(|f| f.link_flags & 1 != 0)),
+                (
+                    "split_volumes",
+                    valid.clone().any(|f| f.flags & FILE_SPLIT != 0),
+                ),
+            ] {
+                assert_eq!(
+                    sample.features.get(feature).map(String::as_str),
+                    Some(if present { "present" } else { "absent" }),
+                    "{}: measured feature {feature}",
+                    sample.id
+                );
+            }
+            for evidence in &sample.descriptor_evidence {
+                let actual = &archive.files()[evidence.index];
+                assert!(
+                    actual.is_valid(),
+                    "feature evidence must name a valid member"
+                );
+                assert_eq!(actual.flags, evidence.flags);
+                assert_eq!(actual.volume, evidence.volume);
+                assert_eq!(actual.link_previous, evidence.link_previous);
+                assert_eq!(actual.link_next, evidence.link_next);
+                assert_eq!(actual.link_flags, evidence.link_flags);
+            }
+            for evidence in &sample.split_evidence {
+                let file = &archive.files()[evidence.index];
+                assert!(file.is_valid() && file.flags & FILE_SPLIT != 0);
+                // Linked aliases reuse earlier payloads; measure the physical member.
+                assert_eq!(file.link_flags & 1, 0);
+                assert_eq!(file.data_offset, evidence.segments[0].offset);
+                let compressed = file.flags & FILE_COMPRESSED != 0;
+                let mut stored_size = 0;
+                for (part, segment) in evidence.segments.iter().enumerate() {
+                    assert_eq!(usize::from(segment.volume), usize::from(file.volume) + part);
+                    let mut input = fs::File::open(dir.join(&segment.path)).unwrap();
+                    let mut header = [0; 84];
+                    input.read_exact(&mut header).unwrap();
+                    let u32_at = |p| u32::from_le_bytes(header[p..p + 4].try_into().unwrap());
+                    let u64_at = |p| u64::from_le_bytes(header[p..p + 8].try_into().unwrap());
+                    assert_eq!(&header[..4], b"ISc(");
+                    assert_eq!(u32_at(4), sample.raw_version);
+                    let (offset, bytes) = if evidence.index == u32_at(32) as usize {
+                        (u64_at(60), u64_at(if compressed { 76 } else { 68 }))
+                    } else {
+                        assert_eq!(evidence.index, u32_at(28) as usize);
+                        (u64_at(36), u64_at(if compressed { 52 } else { 44 }))
+                    };
+                    assert_eq!((offset, bytes), (segment.offset, segment.stored_size));
+                    assert!(offset + bytes <= input.metadata().unwrap().len());
+                    stored_size += bytes;
+                }
+                assert_eq!(
+                    stored_size,
+                    if compressed {
+                        file.compressed_size
+                    } else {
+                        file.expanded_size
+                    }
+                );
+                let probe = Rc::new(VolumeProbe::default());
+                let observed =
+                    Archive::open_with(dir.join(&sample.entry_cab), None, probe.clone()).unwrap();
+                probe.opened.borrow_mut().clear();
+                let mut output = HashWriter::default();
+                observed
+                    .extract_to(evidence.index, &mut output, Compression::New)
+                    .unwrap();
+                assert_eq!(output.size, file.expanded_size);
+                let paths = evidence
+                    .segments
+                    .iter()
+                    .map(|s| dir.join(&s.path))
+                    .collect::<Vec<_>>();
+                assert_eq!(*probe.opened.borrow(), paths);
+                // Removing a continuation through I/O must reject incomplete output.
+                *probe.denied.borrow_mut() = paths.last().cloned();
+                probe.opened.borrow_mut().clear();
+                assert!(observed
+                    .extract_to(evidence.index, &mut io::sink(), Compression::New)
+                    .is_err());
+                assert_eq!(*probe.opened.borrow(), paths);
+            }
             let expected: Expected = read_json(&root().join(&sample.expected));
             assert_eq!(
                 archive
