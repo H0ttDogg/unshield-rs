@@ -76,8 +76,8 @@
           "274 invalid records are counted and checked for validity, not extracted.",
           "Windows CLI path restrictions apply to <Support> groups; per-member library extraction avoids archived output paths."
         ],
-        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354 (all three jobs passed)",
-        "tested_revision": "87c495e93f82c466eeeac9dc9ba32a4688840ecf"
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39361465228 (all three jobs passed)",
+        "tested_revision": "e6ab36793ac072e1e96322309977bdec944a4f64"
       },
       "review": "Automated local reproduction completed 2026-10-19. Human cross-review remains pending.",
       "feature_evidence": "Every valid descriptor has flags=0x0004 (compressed only), volume=1 and link_flags=0. data2.cab is an empty 512-byte volume. All valid members extract from data1.cab without external files. Names in valid files, directories, components and groups contain only ASCII characters."
@@ -159,8 +159,8 @@
           "Narrow CP932 names do not establish v17+ Unicode filename coverage.",
           "No split-member or obfuscation claim."
         ],
-        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354 (all three jobs passed)",
-        "tested_revision": "87c495e93f82c466eeeac9dc9ba32a4688840ecf"
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39361465228 (all three jobs passed)",
+        "tested_revision": "e6ab36793ac072e1e96322309977bdec944a4f64"
       },
       "limitations": [
         "Format 16 cannot satisfy the v17+ non-ASCII-name task.",
@@ -516,7 +516,7 @@
         "Format 6 uses narrow names; no Unicode, obfuscation, or external-payload coverage claimed."
       ],
       "results": {
-        "platform": "Linux x86_64 locally; five-package cross-platform CI pending",
+        "platform": "Ubuntu, Windows x64/MSVC, and macOS in CI; independent original-C reference rebuilt on Ubuntu; additional local Linux validation",
         "commands": [
           "python3 scripts/real-installers.py fetch epson-twain-571a",
           "python3 scripts/real-installers.py reference epson-twain-571a --extractor build-reference/reference-members",
@@ -525,9 +525,11 @@
           "ctest --test-dir build-static -C Release --output-on-failure",
           "ctest --test-dir build-consumer -C Release --output-on-failure"
         ],
-        "status": "Passed locally: all 170 valid members match independent original-C metadata, size, and SHA-256 through Rust and native/callback C shared, static, and installed libraries. Four physical split members have pinned positive segments, complete compressed sizes, observed opens of both volumes, and missing-continuation rejection. Five-package CI execution is pending.",
+        "status": "Passed on Ubuntu, Windows, and macOS: all 170 valid members match independent original-C metadata, expanded size, and SHA-256 through Rust and native/callback C shared, static, and installed libraries. Four physical split members have pinned positive segments, complete compressed sizes, observed opens of both volumes, and missing-continuation rejection. Ubuntu rebuilt the pinned original C reference and reproduced all expectations.",
         "failures": [],
-        "skips": []
+        "skips": [],
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39361465228 (all three jobs passed)",
+        "tested_revision": "e6ab36793ac072e1e96322309977bdec944a4f64"
       }
     }
   ]

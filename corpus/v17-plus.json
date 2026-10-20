@@ -75,8 +75,8 @@
           "CLI x was exercised on Linux. Windows rejects <Support> group paths; per-member library extraction remains the portable regression comparison.",
           "Some invalid records have name_offset=0; upstream name accessors decode table bytes as placeholder strings. These are not real member names or evidence of non-ASCII filename coverage."
         ],
-        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354 (all three jobs passed)",
-        "tested_revision": "87c495e93f82c466eeeac9dc9ba32a4688840ecf"
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39361465228 (all three jobs passed)",
+        "tested_revision": "e6ab36793ac072e1e96322309977bdec944a4f64"
       },
       "review": "Automated local reproduction completed 2026-10-19. Human cross-review remains pending.",
       "feature_evidence": "Every valid descriptor has flags=0x0004 (compressed only), volume=1 and link_flags=0. data2.cab is an empty 512-byte volume. All valid members extract from data1.cab without external files. Names in valid files, directories, components and groups contain only ASCII characters."
@@ -227,8 +227,8 @@
         "limitations": [
           "The non-ASCII text belongs to a real file-group record, not member basenames or directory records."
         ],
-        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354 (all three jobs passed)",
-        "tested_revision": "87c495e93f82c466eeeac9dc9ba32a4688840ecf"
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39361465228 (all three jobs passed)",
+        "tested_revision": "e6ab36793ac072e1e96322309977bdec944a4f64"
       }
     }
   ]

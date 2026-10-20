@@ -176,13 +176,12 @@ members** and **four physical split members** spanning consecutive cabinet
 volumes. Tests verify segment boundaries, observe both volumes being opened,
 reject a missing continuation, and compare full output against independent C
 hashes. Rust and native/callback C shared, static, and installed comparisons pass
-locally. Combined coverage is **1,059** file content checks across nine datasets/packages.
+on Ubuntu, Windows, and macOS. Combined coverage is **1,059** file content checks across nine datasets/packages.
 
 Non-ASCII UTF-16LE member basenames and real obfuscated-member coverage remain open.
 CI requires all five packages on Linux, macOS, and Windows, including C callbacks,
-and rebuilds the independent reference on Ubuntu. The previous
-[four-package run passed on all three platforms](https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354);
-the five-package extension is awaiting execution.
+and rebuilds the independent reference on Ubuntu. All three jobs
+[passed with all five packages](https://github.com/H0ttDogg/unshield-rs/actions/runs/39361465228).
 Compatibility
 is tied to the pinned header/API; this is not a claim of exhaustive compatibility
 with every InstallShield producer or undocumented format variant.

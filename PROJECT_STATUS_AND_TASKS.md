@@ -38,9 +38,10 @@ defect; explicit UTF-8 JSON I/O and a regression test fixed it before this run.
 
 Epson TWAIN 5.71A Rev.F adds format 6 with four physical split members across
 volumes 2/3, 3/4, 4/5, and 5/6. All 170 valid members match independent C output
-locally through Rust and native/callback shared, static, and installed C
+on Ubuntu, Windows, and macOS through Rust and native/callback shared, static, and installed C
 consumers. Boundary evidence, observed volume opens, and missing-continuation
-rejection are checked. The five-package CI extension is pending.
+rejection are checked. The
+[five-package CI passed at e6ab367](https://github.com/H0ttDogg/unshield-rs/actions/runs/39361465228).
 
 The existing four older upstream datasets still pass all 610 expected output
 hashes: Avigo Manager 51, Baldur's Gate patch 132, The Feeble Files Spanish 319,
@@ -62,7 +63,7 @@ not imply that a named person has reviewed or signed off on it.
 | T4 | Repeatable corpus harness | Farhan | Shoib | Implemented: pinned fetch, independent expected JSON, Rust comparison, required-sample enforcement, tooling regression tests. |
 | T5 | Real-input C compatibility | Shoib | Farhan | Passed locally and on all three CI platforms: native I/O and callbacks, shared/static/installed libraries, every valid member. |
 | T6 | Compatibility fixes discovered by T2-T5 | Shoib | Farhan | No production mismatch found in selected real inputs; no parser/extractor fix needed. Farhan supplies regression tests for future failures. |
-| T7 | Cross-platform CI | Farhan | Shoib | Completed: all four required packages passed on Ubuntu/Windows/macOS at `87c495e`, including linked-member and Unicode-group evidence, Rust, CLI list/test, and native/callback shared/static/installed C consumers. Ubuntu independently rebuilt and reproduced the original C reference. |
+| T7 | Cross-platform CI | Farhan | Shoib | Completed: all five required packages passed on Ubuntu/Windows/macOS at `e6ab367`, including real split members, linked members, Unicode-group evidence, Rust, CLI list/test, and native/callback shared/static/installed C consumers. Ubuntu independently rebuilt and reproduced the original C reference. |
 | T8 | Coverage report | Shoib | Farhan | Written: exact versions/counts, features, failures/skips, commands, and limitations. |
 | T9 | Focused callback Miri tests | Farhan | Shoib | Completed in pulled changes: three tests passed on 2026-10-17; original log and linked report retained. |
 | T10 | Review FFI assumptions against new tests | Shoib | Farhan | Table copying, userdata lifetime, directory-entry copying, cleanup, callback counts/offsets, and synchronization contract checked; boundary unchanged. Human cross-review pending. |
@@ -100,15 +101,15 @@ expectations requires an explicit sample ID.
 
 - `cargo fmt --check` and `cargo clippy --all-targets -- -D warnings`.
 - All 35 Linux Rust integration tests, including all older corpus tests.
-- All four newer packages, 279 valid member metadata/size/SHA-256 comparisons.
-- Five Python corpus-tool tests, including safe embedded-input preparation.
-- Original C reference built independently on Linux; all four packages matched.
+- All five newer packages, 449 valid member metadata/size/SHA-256 comparisons.
+- Six Python corpus-tool tests, including safe embedded-input preparation and UTF-8 inventory handling.
+- Original C reference built independently on Linux; all five packages matched.
 - Linux shared/static CTest suites and installed C consumers, including callbacks.
 - Separate source-checkout reproduction, fresh CAB preparation, and a new Rust build.
-- Linux CLI listing, testing, and extraction for JBeijing7 and SFCard Viewer.
+- Linux CLI listing, testing, and extraction for JBeijing7, SFCard Viewer, and Epson TWAIN.
 
-Earlier Windows shared/static/installed checks and the three-platform CI cover
-the two ASUS packages. The new JBeijing7 and Sony samples have only been executed on Linux.
+The five-package CI run independently fetched and passed all samples on Ubuntu,
+Windows, and macOS, including Epson's physical split members and linked aliases.
 See [the report and retained output](reports/real-installers.md).
 
 No new production unsafe code was introduced. The 2026-10-07 partial Miri run
@@ -128,7 +129,7 @@ still requires additional inputs; one package does not verify a whole version ra
 | R1 | Reproduce the other person's sample and review evidence | Shoib and Farhan | Each other | Automated reproduction completed in a separate source checkout with fresh CAB preparation, a new Rust build, original-C comparison, and native/callback C comparisons. Actual human cross-review remains pending. |
 | T2-02 | Another producer's v6-16 CAB containing application/driver payloads | Shoib | Farhan | Completed: `kodensha-jbeijing7-124`, format 16, all 130 valid members independently matched; actual application/dictionary payloads. Human review pending. |
 | T3-02 | Another producer's v17+ CAB with non-ASCII names | Farhan | Shoib | Completed: `sony-sfcardviewer-264`, format 26, genuine Japanese UTF-16LE file-group name referencing six valid members; all 20 valid members independently matched. File basenames remain ASCII. |
-| T2-03 | Real members split across volumes | Shoib | Farhan | Completed locally: `epson-twain-571a`, format 6, four physical split members across volumes 2/3 through 5/6. All six CAB volumes preserved and all 170 valid members independently matched. Cross-platform CI extension pending. |
+| T2-03 | Real members split across volumes | Shoib | Farhan | Completed: `epson-twain-571a`, format 6, four physical split members across volumes 2/3 through 5/6. All six CAB volumes preserved and all 170 valid members independently matched through Rust and native/callback shared/static/installed C on Ubuntu/Windows/macOS. |
 | T3-03 | Real obfuscated or linked members | Farhan | Shoib | Completed for links: JBeijing7 has 11 valid previous-file links, including chains; raw descriptors recorded and all 130 valid members matched independently. No real obfuscation coverage claimed. |
 | T6-N | One reproducible defect per task | Shoib | Farhan | Failing real input, focused regression, fix, original input and existing suite pass. |
 | F1 | Differential fuzzing | Deferred | Deferred | Separate later phase, excluded from current work. |
@@ -139,7 +140,7 @@ adds real split members. No selected real sample contains obfuscated members. So
 file-group name; format 21 has only ASCII names. Generated fixtures cover additional features; those are not
 substitutes for real-format evidence.
 
-T2-03 passes local validation; the five-package CI extension is pending.
+Farhan's and Shoib's implementation and automated validation tasks are complete.
 R1 and T10 still require human cross-review. The Windows inventory
 encoding defect found in CI is fixed and regression-tested. T6-N applies to
 additional reproducible defects; no production parser/extractor mismatch was

@@ -87,8 +87,8 @@ this was not a new cross-platform build. The full suite and reproduction/CTest
 output are retained in [the local evidence log](2026-10-19-linked-members.log).
 Retained local logs have trailing whitespace removed.
 
-The workflow requires all four packages on Ubuntu, Windows, and macOS and
-retains their CLI logs. The
+Before adding Epson, the workflow required four packages on Ubuntu, Windows,
+and macOS and retained their CLI logs. The
 [extended run at 87c495e](https://github.com/H0ttDogg/unshield-rs/actions/runs/39357976354)
 passed all three jobs. Every platform fetched and hash-verified all four
 packages, compared all 279 valid members through Rust, exercised CLI list/test,
@@ -223,8 +223,17 @@ shared/static CTest suites (five checks each), installed native/callback CTest
 (two checks), and Epson CLI list/test/extraction. A separate fresh download
 through the exact corpus fetcher also passed every input hash. See
 [the retained local output](2026-10-19-split-volumes.log).
-The workflow requires all five samples on Ubuntu, Windows, and macOS; execution
-of that extension is pending.
+The [five-package run at e6ab367](https://github.com/H0ttDogg/unshield-rs/actions/runs/39361465228)
+passed on Ubuntu, Windows, and macOS. Every platform fetched and verified all
+five packages, passed the Rust split-boundary/probe and all-member comparisons,
+CLI list/test, shared/static CTest suites (five checks each), installed real-input
+CTest (two checks), and the all-public-functions installed C consumer. Ubuntu
+also completed CLI extraction, rebuilt and reproduced the pinned original C
+reference for all 449 valid members, and passed native/callback relocated static
+pkg-config consumers. All six Python tooling tests passed on every platform.
+There were no CI failures or missing required samples. Selected output is
+retained in [the five-package CI log](2026-10-19-five-package-ci.log); the run
+also retains full comparison and CTest artifacts.
 
 ## Limits and next samples
 
