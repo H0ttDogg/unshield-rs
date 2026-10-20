@@ -1,6 +1,6 @@
 # Real installer corpus
 
-Four packages supply real InstallShield format-9, format-16, format-21, and format-26 CAB sets.
+Five packages supply real InstallShield format-6, format-9, format-16, format-21, and format-26 CAB sets.
 These are downloaded archives; tests never execute their installers. Binaries
 remain in ignored `test-data/real-installers/` because redistribution permission
 has not been established.
@@ -11,6 +11,7 @@ has not been established.
 | [v17-plus.json](v17-plus.json) | `asus-realtek-lan-105` | 21 | 75 |
 | [v6-16.json](v6-16.json) | `kodensha-jbeijing7-124` | 16 | 130 |
 | [v17-plus.json](v17-plus.json) | `sony-sfcardviewer-264` | 26 | 20 |
+| [v6-16.json](v6-16.json) | `epson-twain-571a` | 6 | 170 |
 
 JBeijing7 contains application/dictionary payloads, a genuine Japanese CP932
 filename, and 11 valid members with previous-file links, including multi-step
@@ -24,13 +25,22 @@ group name. The inventory records its exact UTF-8 representation and valid
 member indices. An archived official download is used because the original
 live URL now redirects to a web page.
 
+Epson TWAIN 5.71A (Rev.F) supplies four physical split members across volumes
+2/3, 3/4, 4/5, and 5/6. Its self-extracting ZIP is read without execution;
+all six CAB volumes and the header are retained. `split_evidence` pins each
+member's segment offsets and stored byte counts. Tests check the volume-header
+boundaries and complete compressed sizes, observe both input volumes being
+opened during extraction, and require extraction to fail when a continuation
+volume is unavailable. Two linked aliases reuse the first split payload and
+are not counted as additional physical splits.
+
 ## Fetch and run
 
 Requires Python 3.11+, Rust, and a native linker. From the repository root:
 
 ```sh
 python3 scripts/real-installers.py fetch
-UNSHIELD_REQUIRE_REAL_INSTALLERS=asus-soundmax-4570,asus-realtek-lan-105,kodensha-jbeijing7-124,sony-sfcardviewer-264 \
+UNSHIELD_REQUIRE_REAL_INSTALLERS=asus-soundmax-4570,asus-realtek-lan-105,kodensha-jbeijing7-124,sony-sfcardviewer-264,epson-twain-571a \
   cargo test --locked --test real_installers -- --nocapture
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```

@@ -1,0 +1,179 @@
+===== split-full-rust.log =====
+   Compiling unshield-rs v1.6.2 (/home/farhan/programming/rust/unshield-rs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.52s
+     Running unittests src/lib.rs (target/debug/deps/unshield-57836c395a409184)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/unshield_rs-351d84cf85bb844e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/callbacks.rs (target/debug/deps/callbacks-fa8c7505593ce58d)
+
+running 3 tests
+unshield: fopen callback failed
+unshield: invalid cabinet: incomplete I/O callbacks
+unshield: failed to fill whole buffer
+unshield: fread returned excessive count
+unshield: fseek callback failed
+unshield: ftell callback failed
+unshield: cabinet not found by readdir callback
+test incomplete_callback_table_is_rejected_before_opening ... ok
+unshield: failed to fill whole buffer
+unshield: fread returned excessive count
+unshield: fseek callback failed
+test callback_table_and_directory_entries_live_through_extraction ... ok
+unshield: ftell callback failed
+unshield: fopen callback failed
+unshield: failed to write whole buffer
+unshield: fwrite returned excessive count
+unshield: cabinet not found by readdir callback
+test callback_failures_release_every_file_and_directory ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/corpus.rs (target/debug/deps/corpus-c9eb035aa6532913)
+
+running 5 tests
+test historical_cve_path_is_rejected_by_cli ... ok
+test wireplay ... ok
+test avigomanager ... ok
+test baldurs_gate ... ok
+test feeble_files ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.01s
+
+     Running tests/port.rs (target/debug/deps/port-eea9bf7c51d744d7)
+
+running 13 tests
+test deobfuscation_seed_is_continuous_and_wraps ... ok
+test legacy_names_retain_original_bytes_for_c ... ok
+test raw_deobfuscates_without_decompressing ... ok
+test empty_compressed_member_is_valid ... ok
+test truncated_metadata_and_bad_offsets_return_errors ... ok
+test link_cycles_are_rejected ... ok
+test embedded_header_and_case_insensitive_lookup ... ok
+test c_api_owns_names_and_structs_until_close ... ok
+test previous_file_link_extracts_target_bytes ... ok
+test large_volume_and_member_offsets_are_not_truncated_or_used_as_sentinels ... ok
+test damaged_payloads_and_checksums_fail ... ok
+test split_payload_including_chunk_prefix_across_volumes ... ok
+test extract_version_families ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests/real_installers.rs (target/debug/deps/real_installers-e609253eef5bcc6c)
+
+running 2 tests
+test inventory_contract_is_valid ... ok
+test real_installers ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.45s
+
+     Running tests/review.rs (target/debug/deps/review-18fd1286f55ad7c0)
+
+running 12 tests
+test c_deobfuscation_allows_seed_overlapping_buffer ... ok
+test native_lookup_does_not_conflate_non_utf8_filenames ... ok
+test malformed_member_does_not_truncate_output_before_opening_input ... ok
+test empty_legacy_member_at_end_of_cabinet_needs_no_external_file ... ok
+test c_mutable_group_records_are_observed_by_accessors ... ok
+test metadata_extents_and_descriptor_offsets_are_checked ... ok
+test trailing_compressed_chunk_bytes_are_rejected ... ok
+test cli_refuses_symlink_destinations ... ok
+test cli_success_replaces_existing_hardlink_without_modifying_its_target ... ok
+test cli_group_filter_checks_all_overlapping_groups ... ok
+test cli_failed_extraction_preserves_existing_files_and_cleans_temporary ... ok
+test oversized_and_repeated_names_have_allocation_limits ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
+
+   Doc-tests unshield
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+===== split-rust.log =====
+   Compiling unshield-rs v1.6.2 (/home/farhan/programming/rust/unshield-rs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.87s
+     Running tests/real_installers.rs (target/debug/deps/real_installers-e609253eef5bcc6c)
+
+running 2 tests
+test inventory_contract_is_valid ... ok
+PASS asus-soundmax-4570: format 9, 328 total / 54 valid members; all metadata and SHA-256 hashes match
+PASS kodensha-jbeijing7-124: format 16, 143 total / 130 valid members; all metadata and SHA-256 hashes match
+PASS epson-twain-571a: format 6, 180 total / 170 valid members; all metadata and SHA-256 hashes match
+PASS asus-realtek-lan-105: format 21, 153 total / 75 valid members; all metadata and SHA-256 hashes match
+PASS sony-sfcardviewer-264: format 26, 33 total / 20 valid members; all metadata and SHA-256 hashes match
+Real-installer samples verified: 5
+test real_installers ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.71s
+
+
+===== split-independent-reference.log =====
+REFERENCE ['/home/farhan/programming/rust/unshield-rs/build-reference/reference-members', '/home/farhan/programming/rust/unshield-rs/test-data/real-installers/asus-soundmax-4570/data1.cab', '/home/farhan/programming/rust/unshield-rs/test-data/real-installers/asus-soundmax-4570/reference-dppba9nf', 'new', 'native']
+MATCH REFERENCE asus-soundmax-4570: 54 valid members, metadata and every SHA-256
+REFERENCE ['/home/farhan/programming/rust/unshield-rs/build-reference/reference-members', '/home/farhan/programming/rust/unshield-rs/test-data/real-installers/kodensha-jbeijing7-124/data1.cab', '/home/farhan/programming/rust/unshield-rs/test-data/real-installers/kodensha-jbeijing7-124/reference-cnusasfl', 'new', 'native']
+MATCH REFERENCE kodensha-jbeijing7-124: 130 valid members, metadata and every SHA-256
+REFERENCE ['/home/farhan/programming/rust/unshield-rs/build-reference/reference-members', '/home/farhan/programming/rust/unshield-rs/test-data/real-installers/epson-twain-571a/data1.cab', '/home/farhan/programming/rust/unshield-rs/test-data/real-installers/epson-twain-571a/reference-66nklu_c', 'new', 'native']
+MATCH REFERENCE epson-twain-571a: 170 valid members, metadata and every SHA-256
+REFERENCE ['/home/farhan/programming/rust/unshield-rs/build-reference/reference-members', '/home/farhan/programming/rust/unshield-rs/test-data/real-installers/asus-realtek-lan-105/data1.cab', '/home/farhan/programming/rust/unshield-rs/test-data/real-installers/asus-realtek-lan-105/reference-ounpklbz', 'new', 'native']
+MATCH REFERENCE asus-realtek-lan-105: 75 valid members, metadata and every SHA-256
+REFERENCE ['/home/farhan/programming/rust/unshield-rs/build-reference/reference-members', '/home/farhan/programming/rust/unshield-rs/test-data/real-installers/sony-sfcardviewer-264/data1.cab', '/home/farhan/programming/rust/unshield-rs/test-data/real-installers/sony-sfcardviewer-264/reference-k8r1n9k1', 'new', 'native']
+MATCH REFERENCE sony-sfcardviewer-264: 20 valid members, metadata and every SHA-256
+
+===== split-shared-ctest.log =====
+Internal ctest changing into directory: /home/farhan/programming/rust/unshield-rs/build
+Test project /home/farhan/programming/rust/unshield-rs/build
+    Start 1: real_installers_native
+1/5 Test #1: real_installers_native ...........   Passed    2.70 sec
+    Start 2: real_installers_callbacks
+2/5 Test #2: real_installers_callbacks ........   Passed    2.65 sec
+    Start 3: generate_c_fixtures
+3/5 Test #3: generate_c_fixtures ..............   Passed    0.14 sec
+    Start 4: c_abi
+4/5 Test #4: c_abi ............................   Passed    0.08 sec
+    Start 5: original_c_cli
+5/5 Test #5: original_c_cli ...................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =   5.59 sec
+
+===== split-static-ctest.log =====
+Internal ctest changing into directory: /home/farhan/programming/rust/unshield-rs/build-static
+Test project /home/farhan/programming/rust/unshield-rs/build-static
+    Start 1: real_installers_native
+1/5 Test #1: real_installers_native ...........   Passed    2.32 sec
+    Start 2: real_installers_callbacks
+2/5 Test #2: real_installers_callbacks ........   Passed    2.29 sec
+    Start 3: generate_c_fixtures
+3/5 Test #3: generate_c_fixtures ..............   Passed    0.10 sec
+    Start 4: c_abi
+4/5 Test #4: c_abi ............................   Passed    0.08 sec
+    Start 5: original_c_cli
+5/5 Test #5: original_c_cli ...................   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =   4.81 sec
+
+===== split-installed-ctest.log =====
+Internal ctest changing into directory: /home/farhan/programming/rust/unshield-rs/build-consumer
+Test project /home/farhan/programming/rust/unshield-rs/build-consumer
+    Start 1: installed_real_installers_native
+1/2 Test #1: installed_real_installers_native ......   Passed    2.28 sec
+    Start 2: installed_real_installers_callbacks
+2/2 Test #2: installed_real_installers_callbacks ...   Passed    2.27 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   4.55 sec

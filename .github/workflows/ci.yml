@@ -27,7 +27,7 @@ jobs:
       - name: Compare real-installer metadata and every valid member
         shell: bash
         env:
-          UNSHIELD_REQUIRE_REAL_INSTALLERS: asus-soundmax-4570,asus-realtek-lan-105,kodensha-jbeijing7-124,sony-sfcardviewer-264
+          UNSHIELD_REQUIRE_REAL_INSTALLERS: asus-soundmax-4570,asus-realtek-lan-105,kodensha-jbeijing7-124,sony-sfcardviewer-264,epson-twain-571a
         run: |
           set -o pipefail
           cargo test --locked --test real_installers -- --nocapture 2>&1 | tee target/real-installers.log
@@ -41,7 +41,7 @@ jobs:
       - name: Exercise Rust CLI on the real installers
         shell: bash
         run: |
-          for sample in asus-soundmax-4570 asus-realtek-lan-105 kodensha-jbeijing7-124 sony-sfcardviewer-264; do
+          for sample in asus-soundmax-4570 asus-realtek-lan-105 kodensha-jbeijing7-124 sony-sfcardviewer-264 epson-twain-571a; do
             cargo run --quiet -- l "test-data/real-installers/$sample/data1.cab" > "target/$sample-list.log"
             cargo run --quiet -- t "test-data/real-installers/$sample/data1.cab" > "target/$sample-test.log"
             if [ "${{ runner.os }}" = Linux ]; then
@@ -99,6 +99,7 @@ jobs:
             target/asus-*.log
             target/kodensha-*.log
             target/sony-*.log
+            target/epson-*.log
             build/Testing/Temporary/LastTest.log
             build-static/Testing/Temporary/LastTest.log
             build-consumer/Testing/Temporary/LastTest.log

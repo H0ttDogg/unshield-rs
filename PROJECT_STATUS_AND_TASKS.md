@@ -1,6 +1,6 @@
 # libunshield Rust port: status and task ownership
 
-Status snapshot: 2026-10-19, including the real linked-member and Unicode-name follow-ups.
+Status snapshot: 2026-10-19, including real linked-member, Unicode-name, and split-volume follow-ups.
 
 ## Goal and current result
 
@@ -36,10 +36,16 @@ the Unicode evidence is the referenced file-group record. The extended
 with all four packages required. Windows exposed an inventory text-encoding
 defect; explicit UTF-8 JSON I/O and a regression test fixed it before this run.
 
+Epson TWAIN 5.71A Rev.F adds format 6 with four physical split members across
+volumes 2/3, 3/4, 4/5, and 5/6. All 170 valid members match independent C output
+locally through Rust and native/callback shared, static, and installed C
+consumers. Boundary evidence, observed volume opens, and missing-continuation
+rejection are checked. The five-package CI extension is pending.
+
 The existing four older upstream datasets still pass all 610 expected output
 hashes: Avigo Manager 51, Baldur's Gate patch 132, The Feeble Files Spanish 319,
-and Wireplay 108. Combined, this is 889 extracted-file content checks across eight
-datasets/packages, not 889 installers.
+and Wireplay 108. Combined, this is 1,059 extracted-file content checks across nine
+datasets/packages, not 1,059 installers.
 
 Differential fuzzing remains deferred.
 
@@ -122,23 +128,22 @@ still requires additional inputs; one package does not verify a whole version ra
 | R1 | Reproduce the other person's sample and review evidence | Shoib and Farhan | Each other | Automated reproduction completed in a separate source checkout with fresh CAB preparation, a new Rust build, original-C comparison, and native/callback C comparisons. Actual human cross-review remains pending. |
 | T2-02 | Another producer's v6-16 CAB containing application/driver payloads | Shoib | Farhan | Completed: `kodensha-jbeijing7-124`, format 16, all 130 valid members independently matched; actual application/dictionary payloads. Human review pending. |
 | T3-02 | Another producer's v17+ CAB with non-ASCII names | Farhan | Shoib | Completed: `sony-sfcardviewer-264`, format 26, genuine Japanese UTF-16LE file-group name referencing six valid members; all 20 valid members independently matched. File basenames remain ASCII. |
-| T2-03 | Real members split across volumes | Shoib | Farhan | A member actually crosses volumes; all pieces preserved and independently matched. |
+| T2-03 | Real members split across volumes | Shoib | Farhan | Completed locally: `epson-twain-571a`, format 6, four physical split members across volumes 2/3 through 5/6. All six CAB volumes preserved and all 170 valid members independently matched. Cross-platform CI extension pending. |
 | T3-03 | Real obfuscated or linked members | Farhan | Shoib | Completed for links: JBeijing7 has 11 valid previous-file links, including chains; raw descriptors recorded and all 130 valid members matched independently. No real obfuscation coverage claimed. |
 | T6-N | One reproducible defect per task | Shoib | Farhan | Failing real input, focused regression, fix, original input and existing suite pass. |
 | F1 | Differential fuzzing | Deferred | Deferred | Separate later phase, excluded from current work. |
 
 The two ASUS CAB sets contain compressed installer support resources. JBeijing7
-adds real payloads, narrow non-ASCII names, and linked members. No selected real
-sample contains split or obfuscated members. Sony format 26 adds a Japanese
+adds real payloads, narrow non-ASCII names, and linked members. Epson format 6
+adds real split members. No selected real sample contains obfuscated members. Sony format 26 adds a Japanese
 file-group name; format 21 has only ASCII names. Generated fixtures cover additional features; those are not
 substitutes for real-format evidence.
 
-Farhan's implementation and automated validation tasks are complete.
-Shoib's T2-03 still needs a real member crossing
-volumes. R1 and T10 still require human cross-review. The Windows inventory
+T2-03 passes local validation; the five-package CI extension is pending.
+R1 and T10 still require human cross-review. The Windows inventory
 encoding defect found in CI is fixed and regression-tested. T6-N applies to
 additional reproducible defects; no production parser/extractor mismatch was
-discovered in these four packages.
+discovered in these five packages.
 F1 remains deferred.
 
 The Rust CLI is a convenience interface, not an exact reproduction of C CLI

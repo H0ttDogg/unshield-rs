@@ -313,6 +313,222 @@
           "link_flags": 1
         }
       ]
+    },
+    {
+      "id": "epson-twain-571a",
+      "status": "validated",
+      "product": "Epson Perfection Series TWAIN Driver",
+      "release": "5.71A (Rev.F), 2002-12-10",
+      "source_url": "https://ftp.epson.com/drivers/epson10609.exe",
+      "source_page": "https://epson.com/Support/Scanners/Perfection-Series/Epson-Perfection-1260/s/SPT_B11B154011?review-filter=Windows+98",
+      "retrieved": "2026-10-19",
+      "installer": {
+        "path": "installer.exe",
+        "sha256": "40fff4d212cd00d15a5b46d321b335d6e567e1f9842e42c88005c0da882d1723"
+      },
+      "redistribution": "Not established; fetch from the vendor, do not bundle installer binaries or extracted payloads.",
+      "preparation": {
+        "kind": "zip",
+        "instructions": "Read the self-extracting ZIP as archive data. Copy only the seven listed CAB/HDR members using archive_path; retain all six numbered cabinet volumes. Do not run the executable."
+      },
+      "inputs": [
+        {
+          "path": "data1.cab",
+          "archive_path": "DATA1.CAB",
+          "sha256": "122f987e1d8aa26b16f4870bcb0128b966a375f613c189c84c42b8e4e695e6d5"
+        },
+        {
+          "path": "data1.hdr",
+          "archive_path": "DATA1.HDR",
+          "sha256": "3ec6775754faae947349e7a13f48736e9d56cfa8f4ddcae1d5414ba173e04398"
+        },
+        {
+          "path": "data2.cab",
+          "archive_path": "DATA2.CAB",
+          "sha256": "596967da2fc865313e5d523942a7e0b4e2f8c8caf874934d47c4769d689f3756"
+        },
+        {
+          "path": "data3.cab",
+          "archive_path": "DATA3.CAB",
+          "sha256": "9e8d21eac592ec204efd101f327c85699224dc4f586d4c4c2990480541662422"
+        },
+        {
+          "path": "data4.cab",
+          "archive_path": "DATA4.CAB",
+          "sha256": "3ad71fe2abae9e0c19a33bdd082e6d3c1169166bedc8ba50ed9acfca33741196"
+        },
+        {
+          "path": "data5.cab",
+          "archive_path": "DATA5.CAB",
+          "sha256": "9829dd92d362f65715b36f67f5952242b9738c2884c0e6ca8e1e02ac41efb8db"
+        },
+        {
+          "path": "data6.cab",
+          "archive_path": "DATA6.CAB",
+          "sha256": "fc675d7f5cc4fceefaca8d1a47a20d55cbd404d488f96875e8a93419634ae659"
+        }
+      ],
+      "entry_cab": "data1.cab",
+      "version_file": "data1.hdr",
+      "raw_version": 16801804,
+      "major_version": 6,
+      "version_evidence": "ISc( signature; raw little-endian version 0x0100600c at offset 4. Upstream high-byte-1 rule: (version >> 12) & 15 = 6.",
+      "compression": "new",
+      "reference": {
+        "revision": "cbed3d19ef9cdf4e5fb86b9d65e48f1bf8d539db",
+        "build": "See corpus/README.md: separately built pinned original C static library and reference-members.",
+        "command": "python3 scripts/real-installers.py reference epson-twain-571a --extractor build-reference/reference-members"
+      },
+      "expected": "corpus/expected/epson-twain-571a.json",
+      "expected_valid_members": 170,
+      "features": {
+        "unicode": "absent",
+        "non_ascii_names": "absent",
+        "split_volumes": "present",
+        "compression": "present",
+        "obfuscation": "absent",
+        "links": "present",
+        "external_files": "absent"
+      },
+      "feature_evidence": "Four physical members (30, 47, 55, 63) have FILE_SPLIT|FILE_COMPRESSED flags 0x0005 and positive stored segments in consecutive volumes 2/3, 3/4, 4/5, and 5/6. Segment byte counts sum to the descriptors' complete compressed sizes. Members 151 and 175 reuse split member 30 through previous-file links and are aliases, not additional physical splits. All 170 valid members are compressed; 46 valid records have previous-file links. All valid file names and directory/component/group names are ASCII.",
+      "descriptor_evidence": [
+        {
+          "index": 30,
+          "flags": 5,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 151,
+          "link_flags": 2
+        },
+        {
+          "index": 47,
+          "flags": 5,
+          "volume": 3,
+          "link_previous": 0,
+          "link_next": 0,
+          "link_flags": 0
+        },
+        {
+          "index": 55,
+          "flags": 5,
+          "volume": 4,
+          "link_previous": 0,
+          "link_next": 0,
+          "link_flags": 0
+        },
+        {
+          "index": 63,
+          "flags": 5,
+          "volume": 5,
+          "link_previous": 0,
+          "link_next": 0,
+          "link_flags": 0
+        },
+        {
+          "index": 151,
+          "flags": 5,
+          "volume": 6,
+          "link_previous": 30,
+          "link_next": 175,
+          "link_flags": 3
+        },
+        {
+          "index": 175,
+          "flags": 5,
+          "volume": 6,
+          "link_previous": 151,
+          "link_next": 0,
+          "link_flags": 1
+        }
+      ],
+      "split_evidence": [
+        {
+          "index": 30,
+          "segments": [
+            {
+              "path": "data2.cab",
+              "volume": 2,
+              "offset": 348827,
+              "stored_size": 14693
+            },
+            {
+              "path": "data3.cab",
+              "volume": 3,
+              "offset": 512,
+              "stored_size": 89214
+            }
+          ]
+        },
+        {
+          "index": 47,
+          "segments": [
+            {
+              "path": "data3.cab",
+              "volume": 3,
+              "offset": 1336221,
+              "stored_size": 121443
+            },
+            {
+              "path": "data4.cab",
+              "volume": 4,
+              "offset": 512,
+              "stored_size": 63953
+            }
+          ]
+        },
+        {
+          "index": 55,
+          "segments": [
+            {
+              "path": "data4.cab",
+              "volume": 4,
+              "offset": 1349161,
+              "stored_size": 108503
+            },
+            {
+              "path": "data5.cab",
+              "volume": 5,
+              "offset": 512,
+              "stored_size": 75930
+            }
+          ]
+        },
+        {
+          "index": 63,
+          "segments": [
+            {
+              "path": "data5.cab",
+              "volume": 5,
+              "offset": 1358526,
+              "stored_size": 99138
+            },
+            {
+              "path": "data6.cab",
+              "volume": 6,
+              "offset": 512,
+              "stored_size": 85395
+            }
+          ]
+        }
+      ],
+      "limitations": [
+        "Split evidence counts four distinct physical payloads; linked aliases 151 and 175 reuse member 30.",
+        "Format 6 uses narrow names; no Unicode, obfuscation, or external-payload coverage claimed."
+      ],
+      "results": {
+        "platform": "Linux x86_64 locally; five-package cross-platform CI pending",
+        "commands": [
+          "python3 scripts/real-installers.py fetch epson-twain-571a",
+          "python3 scripts/real-installers.py reference epson-twain-571a --extractor build-reference/reference-members",
+          "cargo test --locked --test real_installers -- --nocapture",
+          "ctest --test-dir build -C Release --output-on-failure",
+          "ctest --test-dir build-static -C Release --output-on-failure",
+          "ctest --test-dir build-consumer -C Release --output-on-failure"
+        ],
+        "status": "Passed locally: all 170 valid members match independent original-C metadata, size, and SHA-256 through Rust and native/callback C shared, static, and installed libraries. Four physical split members have pinned positive segments, complete compressed sizes, observed opens of both volumes, and missing-continuation rejection. Five-package CI execution is pending.",
+        "failures": [],
+        "skips": []
+      }
     }
   ]
 }
