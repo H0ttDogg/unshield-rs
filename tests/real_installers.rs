@@ -22,6 +22,7 @@ struct Inventory {
 struct Input {
     path: String,
     sha256: String,
+    archive_path: Option<String>,
 }
 #[derive(Default, Deserialize)]
 #[serde(default)]
@@ -136,6 +137,9 @@ fn inventories() -> Vec<Inventory> {
                 let mut paths = HashSet::new();
                 for input in std::iter::once(&sample.installer).chain(&sample.inputs) {
                     relative(&input.path);
+                    if let Some(path) = &input.archive_path {
+                        relative(path);
+                    }
                     assert!(paths.insert(&input.path));
                     assert_eq!(input.sha256.len(), 64);
                     assert!(input.sha256.bytes().all(|b| b.is_ascii_hexdigit()));

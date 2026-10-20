@@ -4,6 +4,26 @@
 #include <libunshield.h>
 #include <stdio.h>
 #include <string.h>
+#include <dirent.h>
+
+typedef struct { unsigned opens, closes, reads, writes, dirs, dir_closes; } State;
+static void *cb_open(const char *p, const char *m, void *u) {
+    FILE *f = fopen(p, m); if (f) ((State *)u)->opens++; return f;
+}
+static int cb_seek(void *f, long o, int w, void *u) { (void)u; return fseek(f, o, w); }
+static long cb_tell(void *f, void *u) { (void)u; return ftell(f); }
+static size_t cb_read(void *p, size_t s, size_t n, void *f, void *u) {
+    ((State *)u)->reads++; return fread(p, s, n, f);
+}
+static size_t cb_write(const void *p, size_t s, size_t n, void *f, void *u) {
+    ((State *)u)->writes++; return fwrite(p, s, n, f);
+}
+static int cb_close(void *f, void *u) { ((State *)u)->closes++; return fclose(f); }
+static void *cb_opendir(const char *p, void *u) {
+    DIR *d = opendir(p); if (d) ((State *)u)->dirs++; return d;
+}
+static int cb_closedir(void *d, void *u) { ((State *)u)->dir_closes++; return closedir(d); }
+static struct dirent *cb_readdir(void *d, void *u) { (void)u; return readdir(d); }
 
 static void hex(const char *s) {
     putchar('"');
@@ -13,12 +33,17 @@ static void hex(const char *s) {
 }
 
 int main(int argc, char **argv) {
-    if (argc != 4 || (strcmp(argv[3], "new") && strcmp(argv[3], "old"))) {
-        fprintf(stderr, "usage: reference-members CAB EXISTING_OUTPUT_DIR new|old\n");
+    if ((argc != 4 && argc != 5) || (strcmp(argv[3], "new") && strcmp(argv[3], "old")) ||
+        (argc == 5 && strcmp(argv[4], "native") && strcmp(argv[4], "callbacks"))) {
+        fprintf(stderr, "usage: reference-members CAB EXISTING_OUTPUT_DIR new|old [native|callbacks]\n");
         return 2;
     }
     unshield_set_log_level(0);
-    Unshield *u = unshield_open(argv[1]);
+    int callbacks = argc == 5 && !strcmp(argv[4], "callbacks");
+    State state = {0};
+    UnshieldIoCallbacks cb = {cb_open, cb_seek, cb_tell, cb_read, cb_write,
+                             cb_close, cb_opendir, cb_closedir, cb_readdir};
+    Unshield *u = callbacks ? unshield_open2(argv[1], &cb, &state) : unshield_open(argv[1]);
     if (!u) return 3;
     printf("{\"unicode\":%s,\"directories_hex\":[", unshield_is_unicode(u) ? "true" : "false");
     for (int i = 0; i < unshield_directory_count(u); ++i) {
@@ -59,5 +84,10 @@ int main(int argc, char **argv) {
     }
     printf("]}\n");
     unshield_close(u);
+    if (callbacks && (!state.reads || !state.writes || !state.dirs ||
+        state.opens != state.closes || state.dirs != state.dir_closes)) {
+        fprintf(stderr, "callback activity or resource balance check failed\n");
+        return 5;
+    }
     return failed;
 }

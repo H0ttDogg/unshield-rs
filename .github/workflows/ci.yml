@@ -20,13 +20,14 @@ jobs:
         run: sh scripts/fetch-upstream.sh
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
+      - run: python -m unittest discover -s tests -p "test_*.py"
       - name: Fetch hash-pinned real installers
         run: python scripts/real-installers.py fetch
       - run: cargo test --locked -- --include-ignored --skip real_installers
       - name: Compare real-installer metadata and every valid member
         shell: bash
         env:
-          UNSHIELD_REQUIRE_REAL_INSTALLERS: asus-realtek-lan-105
+          UNSHIELD_REQUIRE_REAL_INSTALLERS: asus-soundmax-4570,asus-realtek-lan-105
         run: |
           set -o pipefail
           cargo test --locked --test real_installers -- --nocapture 2>&1 | tee target/real-installers.log
@@ -37,14 +38,34 @@ jobs:
           name: real-installers-${{ matrix.os }}
           path: target/real-installers.log
           if-no-files-found: warn
-      - run: cmake -S . -B build -DTEST_UPSTREAM_CLI=ON
+      - name: Exercise Rust CLI on the real installers
+        shell: bash
+        run: |
+          for sample in asus-soundmax-4570 asus-realtek-lan-105; do
+            cargo run --quiet -- l "test-data/real-installers/$sample/data1.cab" > "target/$sample-list.log"
+            cargo run --quiet -- t "test-data/real-installers/$sample/data1.cab" > "target/$sample-test.log"
+            if [ "${{ runner.os }}" = Linux ]; then
+              cargo run --quiet -- -d "target/$sample-extracted" x "test-data/real-installers/$sample/data1.cab" > "target/$sample-extract.log"
+            fi
+          done
+      - name: Reproduce independent C reference on Ubuntu
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -o pipefail
+          cmake -S upstream/unshield -B build-reference -DBUILD_TESTING=OFF -DBUILD_STATIC=ON -DUSE_OUR_OWN_MD5=ON -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-reference --target libunshield
+          cc -std=c11 -Wall -Wextra -Werror -I upstream/unshield/lib tests/reference_members.c build-reference/lib/libunshield.a build-reference/lib/md5/CMakeFiles/md5.dir/md5c.c.o -lz -o build-reference/reference-members
+          python scripts/real-installers.py reference --extractor build-reference/reference-members 2>&1 | tee target/independent-reference.log
+      - run: cmake -S . -B build -DTEST_UPSTREAM_CLI=ON -DTEST_REAL_INSTALLERS=ON
       - run: cmake --build build --config Release
       - run: ctest --test-dir build -C Release --output-on-failure
       - run: cmake --install build --config Release --prefix install
       - name: Configure installed C consumer
         shell: bash
-        run: cmake -S tests/installed -B build-consumer -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/install"
+        run: cmake -S tests/installed -B build-consumer -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/install" -DTEST_REAL_INSTALLERS=ON
       - run: cmake --build build-consumer --config Release
+      - run: ctest --test-dir build-consumer -C Release --output-on-failure
       - name: Run installed C consumer
         shell: bash
         run: |
@@ -53,7 +74,7 @@ jobs:
           else
             build-consumer/consumer build/c-fixtures
           fi
-      - run: cmake -S . -B build-static -DBUILD_STATIC=ON -DBUILD_CLI=OFF -DTEST_UPSTREAM_CLI=ON -DCMAKE_INSTALL_LIBDIR=lib/test-arch
+      - run: cmake -S . -B build-static -DBUILD_STATIC=ON -DBUILD_CLI=OFF -DTEST_UPSTREAM_CLI=ON -DTEST_REAL_INSTALLERS=ON -DCMAKE_INSTALL_LIBDIR=lib/test-arch
       - run: cmake --build build-static --config Release
       - run: ctest --test-dir build-static -C Release --output-on-failure
       - name: Verify relocated multiarch pkg-config static installation
@@ -65,3 +86,18 @@ jobs:
           export PKG_CONFIG_PATH="$GITHUB_WORKSPACE/relocated-static/lib/test-arch/pkgconfig"
           cc -std=c11 -UNDEBUG tests/c_abi.c $(pkg-config --cflags --libs --static libunshield) -o build-static/pkg-consumer
           build-static/pkg-consumer build-static/c-fixtures
+          cc -std=c11 tests/reference_members.c $(pkg-config --cflags --libs --static libunshield) -o build-static/pkg-real-consumer
+          python scripts/real-installers.py check-c --extractor build-static/pkg-real-consumer --io native
+          python scripts/real-installers.py check-c --extractor build-static/pkg-real-consumer --io callbacks
+      - name: Preserve C reference and consumer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c-installers-${{ matrix.os }}
+          path: |
+            target/independent-reference.log
+            target/asus-*.log
+            build/Testing/Temporary/LastTest.log
+            build-static/Testing/Temporary/LastTest.log
+            build-consumer/Testing/Temporary/LastTest.log
+          if-no-files-found: warn

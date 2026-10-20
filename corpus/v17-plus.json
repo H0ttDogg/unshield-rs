@@ -40,8 +40,8 @@
       "compression": "new",
       "reference": {
         "revision": "cbed3d19ef9cdf4e5fb86b9d65e48f1bf8d539db",
-        "build": "cmake -S upstream/unshield -B build-reference -DBUILD_TESTING=OFF -DUSE_OUR_OWN_MD5=ON -DCMAKE_BUILD_TYPE=Release; cmake --build build-reference",
-        "command": "build-reference/reference-members test-data/real-installers/asus-realtek-lan-105/data1.cab test-data/real-installers/asus-realtek-lan-105/reference new",
+        "build": "See corpus/README.md: pinned upstream C static library, its MD5 object, and reference-members.",
+        "command": "python3 scripts/real-installers.py reference asus-realtek-lan-105 --extractor build-reference/reference-members",
         "metadata_command": "See corpus/README.md for compiling tests/reference_members.c and scripts/real-installers.py reference."
       },
       "expected": "corpus/expected/asus-realtek-lan-105.json",
@@ -56,31 +56,29 @@
         "external_files": "absent"
       },
       "results": {
-        "rust_revision": "89985a9 plus uncommitted harness changes",
-        "platform": "Linux x86_64",
+        "rust_revision": "dd26dcb plus the 2026-10-19 corpus/C consumer integration; production Rust source unchanged",
+        "platform": "Windows x64/MSVC; independent reference rebuilt on Linux x86_64 (WSL)",
         "commands": [
           "python3 scripts/real-installers.py fetch",
           "python3 scripts/real-installers.py reference --extractor build-reference/reference-members",
-          "cargo test --locked --test real_installers -- --nocapture",
-          "cargo run --quiet -- l test-data/real-installers/asus-realtek-lan-105/data1.cab",
-          "cargo run --quiet -- t test-data/real-installers/asus-realtek-lan-105/data1.cab",
-          "cargo run --quiet -- -d target/asus-realtek-cli x test-data/real-installers/asus-realtek-lan-105/data1.cab"
+          "cargo test --locked -- --include-ignored --nocapture",
+          "cmake -S . -B build -DTEST_UPSTREAM_CLI=ON -DTEST_REAL_INSTALLERS=ON",
+          "ctest --test-dir build -C Release --output-on-failure",
+          "See corpus/README.md for static and installed C consumer commands."
         ],
-        "status": "passed: all 75 valid members match reference metadata and SHA-256",
+        "status": "Passed: all 75 valid members match independent metadata and SHA-256 through Rust and native/callback C shared, static and installed consumers on Windows.",
         "failures": [],
-        "skips": [
-          "C native/custom callback real-input validation remains T5.",
-          "Windows and macOS execution requires CI."
-        ],
+        "skips": [],
         "limitations": [
           "75 valid members are installer support resources. Driver payloads shipped separately in the ZIP are outside the CAB member comparison.",
           "78 invalid records are retained in expected metadata and checked for validity; they are not extraction candidates.",
           "CLI x was exercised on Linux. Windows rejects <Support> group paths; per-member library extraction remains the portable regression comparison.",
           "Some invalid records have name_offset=0; upstream name accessors decode table bytes as placeholder strings. These are not real member names or evidence of non-ASCII filename coverage."
-        ]
+        ],
+        "ci": "See reports/real-installers.md for current cross-platform run evidence."
       },
-      "review": "Pending Shoib reproduction.",
-      "feature_evidence": "For all 75 valid records, raw descriptors have flags=0x0004 (compressed only), volume=1 and link_flags=0. Both numbered CABs are preserved; data2.cab is an empty 512-byte volume. All selected outputs are supplied by data1.cab without external files. Names in valid files, directories, groups and components are ASCII, despite UTF-16LE storage."
+      "review": "Automated local reproduction completed 2026-10-19. Human cross-review remains pending.",
+      "feature_evidence": "Every valid descriptor has flags=0x0004 (compressed only), volume=1 and link_flags=0. data2.cab is an empty 512-byte volume. All valid members extract from data1.cab without external files. Names in valid files, directories, components and groups contain only ASCII characters."
     }
   ]
 }

@@ -133,7 +133,6 @@ ctest --test-dir build -C Release --output-on-failure
 ```
 
 Verified locally on Windows x64/MSVC:
-
 - All **610** upstream manifest hashes: Avigo Manager (51), Baldur's Gate patch
   (132), The Feeble Files Spanish (319), Wireplay (108).
 - The historical CVE-2015-1386 traversal fixture is rejected by the Rust CLI.
@@ -143,25 +142,31 @@ Verified locally on Windows x64/MSVC:
 - Shared and static CMake builds, installation, and a separate C consumer of the
   installed `find_package(unshield)` target pass.
 
-Real newer-format validation now includes one vendor-distributed **format-21**
-ASUS Realtek package: all **75 valid CAB members** match independently extracted
-upstream C metadata and SHA-256 hashes on Linux. See
+Real newer-format validation includes two vendor-distributed ASUS packages:
+**format 9** SoundMAX (54 valid CAB members) and **format 21** Realtek (75).
+All **129 valid members** match independently extracted upstream C metadata and
+SHA-256 hashes. The same comparisons pass through native C I/O and custom
+callbacks in shared, static, and installed Windows libraries. See
 [the inventory and reproduction commands](corpus/README.md) and
-[the measured coverage report](reports/real-installers.md). Fetch and compare it:
+[the measured coverage report](reports/real-installers.md). Fetch and compare them:
 
 ```sh
 python3 scripts/real-installers.py fetch
 cargo test --locked --test real_installers -- --nocapture
 ```
 
-The names use UTF-16LE storage but contain no non-ASCII characters. Real v6–16
-coverage and newer split/obfuscated/linked member coverage remain open. CI now
-requires this package on Linux, macOS and Windows; the new Windows/macOS checks
-have not yet been executed. Compatibility
+Format 21 uses UTF-16LE storage, but neither sample contains non-ASCII names.
+Other versions and newer real split/obfuscated/linked member coverage remain open.
+CI requires both packages on Linux, macOS, and Windows, including C callbacks,
+and rebuilds the independent reference on Ubuntu. See the report for run evidence.
+Compatibility
 is tied to the pinned header/API; this is not a claim of exhaustive compatibility
 with every InstallShield producer or undocumented format variant.
 
 Differential fuzzing is intentionally deferred.
+
+The [project status and task board](PROJECT_STATUS_AND_TASKS.md) separates
+completed implementation/validation from further corpus work and human review.
 
 ### Miri
 

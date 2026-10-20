@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch hash-pinned CAB sets or record output from the independent C reference."""
+"""Fetch CAB sets, verify the independent C reference, or check C ABI extraction."""
 import argparse
 import hashlib
 import json
@@ -94,7 +94,7 @@ def fetch(sample):
             output.parent.mkdir(parents=True, exist_ok=True)
             with tempfile.TemporaryDirectory(dir=directory) as temporary:
                 unpacked = Path(temporary) / "member"
-                with archive.open(item["path"]) as source, unpacked.open("wb") as target:
+                with archive.open(item.get("archive_path", item["path"])) as source, unpacked.open("wb") as target:
                     while block := source.read(1024 * 1024):
                         target.write(block)
                 verify(unpacked, item["sha256"])
@@ -103,19 +103,30 @@ def fetch(sample):
     print(f"READY {sample['id']}: format {sample['major_version']}, all input identities verified", flush=True)
 
 
-def reference(sample, extractor, record):
-    revision = subprocess.check_output(
-        ["git", "-C", str(ROOT / "upstream/unshield"), "rev-parse", "HEAD"], text=True
-    ).strip()
-    if revision != REFERENCE:
-        raise ValueError(f"reference source must be pinned to {REFERENCE}, got {revision}")
+def comparable(metadata):
+    # Invalid records have no meaningful filename/size/directory. Preserve their
+    # indices and validity, just as the Rust regression harness does.
+    return {**metadata, "files": [m if m["valid"] else
+            {"index": m["index"], "valid": False} for m in metadata["files"]]}
+
+
+def compare(sample, extractor, record=False, io_mode="native", independent=True):
+    if independent:
+        revision = subprocess.check_output(
+            ["git", "-C", str(ROOT / "upstream/unshield"), "rev-parse", "HEAD"], text=True
+        ).strip()
+        if revision != REFERENCE:
+            raise ValueError(f"reference source must be pinned to {REFERENCE}, got {revision}")
     directory = sample_dir(sample)
     verify_inputs(sample, directory)
     with tempfile.TemporaryDirectory(prefix="reference-", dir=directory) as temporary:
         command = [str(extractor.resolve()), str(relative(directory, sample["entry_cab"])),
-                   temporary, sample["compression"]]
-        print("REFERENCE", command, flush=True)
-        result = subprocess.run(command, check=True, capture_output=True, text=True)
+                   temporary, sample["compression"], io_mode]
+        label = "REFERENCE" if independent else f"C-ABI/{io_mode}"
+        print(label, command, flush=True)
+        result = subprocess.run(command, capture_output=True, text=True, timeout=180)
+        if result.returncode:
+            raise RuntimeError(f"{label} failed ({result.returncode}): {result.stderr}")
         metadata = json.loads(result.stdout)
         metadata.update(sample_id=sample["id"], reference_revision=REFERENCE)
         for member in metadata["files"]:
@@ -134,35 +145,44 @@ def reference(sample, extractor, record):
             expected.parent.mkdir(parents=True, exist_ok=True)
             expected.write_text(json.dumps(metadata, indent=2) + "\n")
             print(f"RECORDED {expected.relative_to(ROOT)}", flush=True)
-        elif json.loads(expected.read_text()) != metadata:
-            raise ValueError(f"reference output differs from {expected}")
+        elif comparable(json.loads(expected.read_text())) != comparable(metadata):
+            raise ValueError(f"{label} output differs from {expected}")
         else:
-            print(f"MATCH {sample['id']}: independent metadata and every member SHA-256", flush=True)
+            print(f"MATCH {label} {sample['id']}: {sample['expected_valid_members']} valid members, metadata and every SHA-256", flush=True)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("fetch", "reference"))
+    parser.add_argument("action", choices=("fetch", "reference", "check-c"))
     parser.add_argument("ids", nargs="*", help="default: all validated samples")
-    parser.add_argument("--extractor", type=Path, help="reference-members binary linked to upstream C")
+    parser.add_argument("--extractor", type=Path, help="member extractor linked to upstream C (reference) or Rust (check-c)")
+    parser.add_argument("--io", choices=("native", "callbacks"), default="native")
     parser.add_argument("--record-expected", action="store_true", help="explicitly replace expected metadata/hashes")
     args = parser.parse_args()
-    if args.action == "reference" and not args.extractor:
-        parser.error("reference requires --extractor")
+    if args.action != "fetch" and not args.extractor:
+        parser.error(f"{args.action} requires --extractor")
+    if args.record_expected and (args.action != "reference" or not args.ids):
+        parser.error("--record-expected requires reference and explicit sample IDs")
     samples = inventories()
     unknown = set(args.ids) - {s["id"] for s in samples}
     if unknown:
         parser.error(f"unknown samples: {sorted(unknown)}")
+    selected = 0
     for sample in samples:
         if args.ids and sample["id"] not in args.ids:
             continue
-        if sample["status"] != "validated":
+        if sample["status"] != "validated" and not (args.ids and
+                (args.action == "fetch" or args.record_expected)):
             print(f"SKIP {sample['id']}: candidate has no verified reference output", flush=True)
             continue
+        selected += 1
         if args.action == "fetch":
             fetch(sample)
         else:
-            reference(sample, args.extractor, args.record_expected)
+            compare(sample, args.extractor, args.record_expected, args.io,
+                    independent=args.action == "reference")
+    if selected == 0:
+        parser.error("no eligible samples selected")
 
 
 if __name__ == "__main__":

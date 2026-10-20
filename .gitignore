@@ -12,11 +12,6 @@
 /reports/real-installer-reference-linux.log
 /reports/real-installers-linux.log
 
-# Keep only the root README and safety documentation in Git.
-*.md
-!/README.md
-!/SAFETY.md
-
 # Local tool and editor state.
 /.idea/
 /.vscode/
