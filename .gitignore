@@ -13,6 +13,7 @@
 /reports/real-installers-linux.log
 
 # Local tool and editor state.
+/PROJECT_STATUS_AND_TASKS.md
 /.idea/
 /.vscode/
 __pycache__/

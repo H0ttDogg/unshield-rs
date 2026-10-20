@@ -188,9 +188,6 @@ with every InstallShield producer or undocumented format variant.
 
 Differential fuzzing is intentionally deferred.
 
-The [project status and task board](PROJECT_STATUS_AND_TASKS.md) separates
-completed implementation/validation from further corpus work and human review.
-
 ### Miri
 
 The 2026-10-07 Miri check at commit `98482a7`, using

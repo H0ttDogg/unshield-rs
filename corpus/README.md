@@ -138,6 +138,5 @@ Ubuntu, Windows, and macOS; Ubuntu also tests a relocated static pkg-config
 consumer. CI artifacts retain Rust comparisons, the independent reference log,
 and CTest logs.
 
-See [measured coverage and limitations](../reports/real-installers.md) and
-[task ownership](../PROJECT_STATUS_AND_TASKS.md). Fixed-input comparisons are
+See [measured coverage and limitations](../reports/real-installers.md). Fixed-input comparisons are
 part of compatibility testing; differential fuzzing remains deferred.
