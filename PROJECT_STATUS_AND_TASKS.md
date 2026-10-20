@@ -16,8 +16,9 @@ Real newer-format installers have now been tested. A format-9 ASUS SoundMAX
 package contributes 54 valid CAB members, and a format-21 ASUS Realtek package
 contributes 75. Every valid member matches independent original-C metadata and
 SHA-256 output. Both pass through Rust and native/custom-callback C callers in
-shared, static, and installed Windows builds. Cross-platform CI for the expanded
-integration is the final verification step; current evidence is recorded in
+shared, static, and installed libraries on Windows, Ubuntu, and macOS.
+The expanded integration passed [CI at e8df8be](https://github.com/H0ttDogg/unshield-rs/actions/runs/39350438927);
+evidence is recorded in
 [reports/real-installers.md](reports/real-installers.md).
 
 The existing four older upstream datasets still pass all 610 expected output
@@ -38,9 +39,9 @@ not imply that a named person has reviewed or signed off on it.
 | T2 | First real v6-16 installer | Shoib | Farhan | Validated: `asus-soundmax-4570`, format 9, all 54 valid members. |
 | T3 | First real v17+ installer | Farhan | Shoib | Validated and reproduced: `asus-realtek-lan-105`, format 21, all 75 valid members. |
 | T4 | Repeatable corpus harness | Farhan | Shoib | Implemented: pinned fetch, independent expected JSON, Rust comparison, required-sample enforcement, tooling regression tests. |
-| T5 | Real-input C compatibility | Shoib | Farhan | Passed locally: native I/O and callbacks, shared/static/installed libraries, every valid member; all three OS jobs configured. |
+| T5 | Real-input C compatibility | Shoib | Farhan | Passed locally and on all three CI platforms: native I/O and callbacks, shared/static/installed libraries, every valid member. |
 | T6 | Compatibility fixes discovered by T2-T5 | Shoib | Farhan | No production mismatch found in selected real inputs; no parser/extractor fix needed. Farhan supplies regression tests for future failures. |
-| T7 | Cross-platform CI | Farhan | Shoib | Both packages required; Rust/C consumers on Ubuntu/Windows/macOS; original-C reproduction and relocated static pkg-config checks on Ubuntu. Final run evidence is in the report. |
+| T7 | Cross-platform CI | Farhan | Shoib | Passed on Ubuntu/Windows/macOS with both packages required; original-C reproduction and relocated static pkg-config checks also passed on Ubuntu. Run linked above. |
 | T8 | Coverage report | Shoib | Farhan | Written: exact versions/counts, features, failures/skips, commands, and limitations. |
 | T9 | Focused callback Miri tests | Farhan | Shoib | Completed in pulled changes: three tests passed on 2026-10-17; original log and linked report retained. |
 | T10 | Review FFI assumptions against new tests | Shoib | Farhan | Table copying, userdata lifetime, directory-entry copying, cleanup, callback counts/offsets, and synchronization contract checked; boundary unchanged. Human cross-review pending. |

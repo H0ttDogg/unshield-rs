@@ -56,11 +56,13 @@ tests. Rerunning the full suite with normal filesystem access passed; no source
 fix was required. No production parser/extractor mismatch was found in these
 real inputs.
 
-The preceding [CI run at dd26dcb](https://github.com/H0ttDogg/unshield-rs/actions/runs/39097002038)
-passed on Ubuntu, Windows, and macOS for the format-21 Rust comparison. The new
-workflow requires both samples and the C checks on all three systems, rebuilds
-the independent C oracle on Ubuntu, and tests the relocated static pkg-config
-consumer there. The new integration's cross-platform run is pending publication.
+The [integration CI run at e8df8be](https://github.com/H0ttDogg/unshield-rs/actions/runs/39350438927)
+passed on **Ubuntu, Windows, and macOS**. Every platform fetched both pinned
+packages and passed the Rust comparisons, CLI list/test operations, and
+shared/static/installed C comparisons through native I/O and custom callbacks.
+Ubuntu additionally passed full CLI extraction, independent original-C reference
+reproduction, and relocated static pkg-config consumers for both I/O modes.
+There were no CI failures and neither required real sample was skipped.
 
 Run commands and artifact locations are documented in
 [corpus/README.md](../corpus/README.md). CI preserves comparison logs and CTest
@@ -79,7 +81,8 @@ tests remain separate evidence. The older 610 hashes represent extracted files
 from four datasets, not 610 installers; combined content checks cover 739 files
 across six datasets/packages.
 
-Rust CLI listing/testing can exercise these archives, but Windows extraction of
+Rust CLI listing/testing passed on all three systems, and extraction passed on
+Ubuntu. Windows extraction of
 their `<Support>` group paths is rejected by its filename policy. The portable
 library/C comparisons use member-index output filenames and cover every valid
 member, including duplicate names. Exact original CLI behavior remains a

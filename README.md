@@ -146,7 +146,8 @@ Real newer-format validation includes two vendor-distributed ASUS packages:
 **format 9** SoundMAX (54 valid CAB members) and **format 21** Realtek (75).
 All **129 valid members** match independently extracted upstream C metadata and
 SHA-256 hashes. The same comparisons pass through native C I/O and custom
-callbacks in shared, static, and installed Windows libraries. See
+callbacks in shared, static, and installed libraries on Windows, Ubuntu, and
+macOS. See
 [the inventory and reproduction commands](corpus/README.md) and
 [the measured coverage report](reports/real-installers.md). Fetch and compare them:
 

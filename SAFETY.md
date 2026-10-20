@@ -77,7 +77,8 @@ relocated multiarch pkg-config static consumer on Ubuntu.
 This review and passing tests are not proof of an absence of bugs. Newer real
 coverage includes format-9 and format-21 installer CAB sets, with all 129 valid
 members compared against independent C metadata and SHA-256 hashes. Native and
-callback C extraction also passes for shared/static/installed Windows builds. Other
+callback C extraction also passes for shared/static/installed Windows, Ubuntu,
+and macOS builds. Other
 versions and non-ASCII/split/obfuscated/linked real inputs remain unverified;
 see [the coverage report](reports/real-installers.md).
 Three small in-memory callback tests also pass under Miri; see

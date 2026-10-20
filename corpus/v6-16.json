@@ -59,7 +59,7 @@
       },
       "results": {
         "rust_revision": "dd26dcb plus the 2026-10-19 corpus/C consumer integration; production Rust source unchanged",
-        "platform": "Windows x64/MSVC; independent reference rebuilt on Linux x86_64 (WSL)",
+        "platform": "Windows x64/MSVC locally; Ubuntu, Windows, and macOS in CI; independent C reference on Linux",
         "commands": [
           "python3 scripts/real-installers.py fetch",
           "python3 scripts/real-installers.py reference --extractor build-reference/reference-members",
@@ -68,7 +68,7 @@
           "ctest --test-dir build -C Release --output-on-failure",
           "See corpus/README.md for static and installed C consumer commands."
         ],
-        "status": "Passed: all 54 valid members match independent metadata and SHA-256 through Rust and native/callback C shared, static and installed consumers on Windows.",
+        "status": "Passed: all 54 valid members match independent metadata and SHA-256 through Rust and native/callback C shared, static and installed consumers on Ubuntu, Windows and macOS.",
         "failures": [],
         "skips": [],
         "limitations": [
@@ -76,7 +76,8 @@
           "274 invalid records are counted and checked for validity, not extracted.",
           "Windows CLI path restrictions apply to <Support> groups; per-member library extraction avoids archived output paths."
         ],
-        "ci": "See reports/real-installers.md for current cross-platform run evidence."
+        "ci": "https://github.com/H0ttDogg/unshield-rs/actions/runs/39350438927 (all three jobs passed)",
+        "tested_revision": "e8df8befa450503e6210cf653c3c89f37571d64a"
       },
       "review": "Automated local reproduction completed 2026-10-19. Human cross-review remains pending.",
       "feature_evidence": "Every valid descriptor has flags=0x0004 (compressed only), volume=1 and link_flags=0. data2.cab is an empty 512-byte volume. All valid members extract from data1.cab without external files. Names in valid files, directories, components and groups contain only ASCII characters."
