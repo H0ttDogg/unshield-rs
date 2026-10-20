@@ -3,12 +3,12 @@
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     fs,
     io::{self, Read, Write},
     path::{Component, Path, PathBuf},
 };
-use unshield::{Archive, Compression};
+use unshield::{Archive, Compression, FILE_COMPRESSED, FILE_OBFUSCATED};
 
 const REFERENCE: &str = "cbed3d19ef9cdf4e5fb86b9d65e48f1bf8d539db";
 
@@ -38,6 +38,24 @@ struct Sample {
     compression: String,
     expected: String,
     expected_valid_members: usize,
+    features: HashMap<String, String>,
+    descriptor_evidence: Vec<DescriptorEvidence>,
+    name_evidence: Vec<NameEvidence>,
+}
+#[derive(Deserialize)]
+struct NameEvidence {
+    group_index: usize,
+    name: String,
+    valid_members: Vec<usize>,
+}
+#[derive(Deserialize)]
+struct DescriptorEvidence {
+    index: usize,
+    flags: u16,
+    volume: u16,
+    link_previous: u32,
+    link_next: u32,
+    link_flags: u8,
 }
 #[derive(Deserialize)]
 struct Expected {
@@ -158,6 +176,21 @@ fn inventories() -> Vec<Inventory> {
                     expected.files.iter().filter(|f| f.valid).count(),
                     sample.expected_valid_members
                 );
+                for evidence in &sample.name_evidence {
+                    assert!(sample.major_version >= 17);
+                    assert!(!evidence.name.is_ascii());
+                    let group = &expected.groups[evidence.group_index];
+                    assert_eq!(group.name_hex, hex(evidence.name.as_bytes()));
+                    assert!(group.first_file >= 0 && group.last_file >= group.first_file);
+                    let valid_members = expected.files
+                        [group.first_file as usize..=group.last_file as usize]
+                        .iter()
+                        .filter(|f| f.valid)
+                        .map(|f| f.index)
+                        .collect::<Vec<_>>();
+                    assert!(!valid_members.is_empty());
+                    assert_eq!(valid_members, evidence.valid_members);
+                }
                 for (index, file) in expected.files.iter().enumerate() {
                     assert_eq!(file.index, index, "expected records must cover every index");
                     if file.valid {
@@ -229,6 +262,55 @@ fn real_installers() {
             );
             let archive = Archive::open(dir.join(&sample.entry_cab)).unwrap();
             assert_eq!(archive.metadata().major_version, sample.major_version);
+            let valid = archive.files().iter().filter(|f| f.is_valid());
+            let non_ascii_names = valid.clone().any(|f| !f.name_bytes.is_ascii())
+                || archive
+                    .metadata()
+                    .directory_bytes
+                    .iter()
+                    .any(|n| !n.is_ascii())
+                || archive
+                    .metadata()
+                    .components
+                    .iter()
+                    .any(|c| !c.name_bytes.is_ascii())
+                || archive
+                    .metadata()
+                    .file_groups
+                    .iter()
+                    .any(|g| !g.name_bytes.is_ascii());
+            for (feature, present) in [
+                ("unicode", sample.major_version >= 17),
+                ("non_ascii_names", non_ascii_names),
+                (
+                    "compression",
+                    valid.clone().any(|f| f.flags & FILE_COMPRESSED != 0),
+                ),
+                (
+                    "obfuscation",
+                    valid.clone().any(|f| f.flags & FILE_OBFUSCATED != 0),
+                ),
+                ("links", valid.clone().any(|f| f.link_flags & 1 != 0)),
+            ] {
+                assert_eq!(
+                    sample.features.get(feature).map(String::as_str),
+                    Some(if present { "present" } else { "absent" }),
+                    "{}: measured feature {feature}",
+                    sample.id
+                );
+            }
+            for evidence in &sample.descriptor_evidence {
+                let actual = &archive.files()[evidence.index];
+                assert!(
+                    actual.is_valid(),
+                    "feature evidence must name a valid member"
+                );
+                assert_eq!(actual.flags, evidence.flags);
+                assert_eq!(actual.volume, evidence.volume);
+                assert_eq!(actual.link_previous, evidence.link_previous);
+                assert_eq!(actual.link_next, evidence.link_next);
+                assert_eq!(actual.link_flags, evidence.link_flags);
+            }
             let expected: Expected = read_json(&root().join(&sample.expected));
             assert_eq!(
                 archive

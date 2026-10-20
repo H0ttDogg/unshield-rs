@@ -81,6 +81,237 @@
       },
       "review": "Automated local reproduction completed 2026-10-19. Human cross-review remains pending.",
       "feature_evidence": "Every valid descriptor has flags=0x0004 (compressed only), volume=1 and link_flags=0. data2.cab is an empty 512-byte volume. All valid members extract from data1.cab without external files. Names in valid files, directories, components and groups contain only ASCII characters."
+    },
+    {
+      "id": "kodensha-jbeijing7-124",
+      "status": "validated",
+      "product": "Kodensha JBeijing7 update",
+      "release": "1.24 (2015-01-21)",
+      "source_url": "https://www.kodensha.jp/sstec/update/jb/jb7up.exe",
+      "source_page": "https://www.kodensha.jp/sstec/update/jb7up.html",
+      "retrieved": "2026-10-19",
+      "installer": {
+        "path": "installer.exe",
+        "sha256": "8d16a987defdf988da032ec9bcd749a24ed093872c068f89219796c40dc25f28"
+      },
+      "redistribution": "Not established; download from vendor, do not bundle binaries.",
+      "preparation": {
+        "kind": "embedded",
+        "instructions": "Copy only the three hash-pinned verbatim byte ranges listed in inputs. Offsets are zero-based; sizes come from the launcher member headers (NUL-separated name, Disk1 path, version, decimal size immediately before each payload). Do not execute the installer."
+      },
+      "inputs": [
+        {
+          "path": "data1.cab",
+          "offset": 817261,
+          "size": 513208,
+          "sha256": "61e188ec43568774fa872cef3a97f7287dcf92642ae5e735a8a26d939968bada"
+        },
+        {
+          "path": "data1.hdr",
+          "offset": 1330509,
+          "size": 26602,
+          "sha256": "bbb766c78e47fb0c263f52f7ed78dc08079bdbec3df1ac44da1712470305f385"
+        },
+        {
+          "path": "data2.cab",
+          "offset": 1357155,
+          "size": 126144698,
+          "sha256": "6b26ce49eb4fba4848844638566046a7a5ea17d6d32da6a3211abc293ddf1ba2"
+        }
+      ],
+      "entry_cab": "data1.cab",
+      "version_file": "data1.hdr",
+      "raw_version": 33556032,
+      "major_version": 16,
+      "version_evidence": "ISc( signature; raw little-endian version at offset 4 is 0x02000640. Upstream lib/helper.c: high byte 2 => low 16 bits / 100 = 16. This is a narrow-name cabinet, not Unicode coverage.",
+      "compression": "new",
+      "reference": {
+        "revision": "cbed3d19ef9cdf4e5fb86b9d65e48f1bf8d539db",
+        "build": "See corpus/README.md: separately built pinned original C static library and reference-members.",
+        "command": "python3 scripts/real-installers.py reference kodensha-jbeijing7-124 --extractor build-reference/reference-members"
+      },
+      "expected": "corpus/expected/kodensha-jbeijing7-124.json",
+      "expected_valid_members": 130,
+      "features": {
+        "unicode": "absent",
+        "non_ascii_names": "present",
+        "split_volumes": "absent",
+        "compression": "present",
+        "obfuscation": "absent",
+        "links": "present",
+        "external_files": "absent"
+      },
+      "feature_evidence": "11 valid members have the previous-file bit set in link_flags, including chains 138 -> 135 -> 132 -> 130 and 139 -> 136 -> 133 -> 131. Link fields are at descriptor offsets 0x4c, 0x50, 0x54; the descriptor table contains 143 records of 0x57 bytes. Member 34 contains a genuine CP932 Japanese TeamViewer URL filename. No obfuscation is claimed.",
+      "results": {
+        "platform": "Linux x86_64 locally; extended Ubuntu/Windows/macOS CI configured, not executed",
+        "commands": [
+          "python3 scripts/real-installers.py fetch kodensha-jbeijing7-124",
+          "python3 scripts/real-installers.py reference kodensha-jbeijing7-124 --extractor build-reference/reference-members",
+          "UNSHIELD_REQUIRE_REAL_INSTALLERS=asus-soundmax-4570,asus-realtek-lan-105,kodensha-jbeijing7-124 cargo test --locked --test real_installers -- --nocapture",
+          "ctest --test-dir build -C Release --output-on-failure",
+          "ctest --test-dir build-static -C Release --output-on-failure",
+          "ctest --test-dir build-consumer -C Release --output-on-failure"
+        ],
+        "status": "Passed locally: all 130 valid members match independently recorded C metadata, expanded sizes, and SHA-256 through Rust and native/callback C shared, static, and installed consumers. Rust also checks raw linked-member descriptor evidence.",
+        "failures": [],
+        "skips": [],
+        "limitations": [
+          "Cross-platform CI for this added sample has not run.",
+          "Narrow CP932 names do not establish v17+ Unicode filename coverage.",
+          "No split-member or obfuscation claim."
+        ]
+      },
+      "limitations": [
+        "Format 16 cannot satisfy the v17+ non-ASCII-name task.",
+        "Non-ASCII narrow name bytes are CP932; the C API preserves them verbatim.",
+        "Archived paths are never used for extraction destinations: output uses member indices."
+      ],
+      "descriptor_evidence": [
+        {
+          "index": 63,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 128,
+          "link_flags": 2
+        },
+        {
+          "index": 79,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 127,
+          "link_flags": 2
+        },
+        {
+          "index": 80,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 129,
+          "link_flags": 2
+        },
+        {
+          "index": 104,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 123,
+          "link_flags": 2
+        },
+        {
+          "index": 123,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 104,
+          "link_next": 0,
+          "link_flags": 1
+        },
+        {
+          "index": 127,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 79,
+          "link_next": 0,
+          "link_flags": 1
+        },
+        {
+          "index": 128,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 63,
+          "link_next": 0,
+          "link_flags": 1
+        },
+        {
+          "index": 129,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 80,
+          "link_next": 0,
+          "link_flags": 1
+        },
+        {
+          "index": 130,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 132,
+          "link_flags": 2
+        },
+        {
+          "index": 131,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 133,
+          "link_flags": 2
+        },
+        {
+          "index": 132,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 130,
+          "link_next": 135,
+          "link_flags": 3
+        },
+        {
+          "index": 133,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 131,
+          "link_next": 136,
+          "link_flags": 3
+        },
+        {
+          "index": 135,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 132,
+          "link_next": 138,
+          "link_flags": 3
+        },
+        {
+          "index": 136,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 133,
+          "link_next": 139,
+          "link_flags": 3
+        },
+        {
+          "index": 137,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 140,
+          "link_flags": 2
+        },
+        {
+          "index": 138,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 135,
+          "link_next": 0,
+          "link_flags": 1
+        },
+        {
+          "index": 139,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 136,
+          "link_next": 0,
+          "link_flags": 1
+        },
+        {
+          "index": 140,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 137,
+          "link_next": 0,
+          "link_flags": 1
+        }
+      ]
     }
   ]
 }

@@ -1,6 +1,6 @@
 # Real installer corpus
 
-Two vendor packages supply real InstallShield format-9 and format-21 CAB sets.
+Four packages supply real InstallShield format-9, format-16, format-21, and format-26 CAB sets.
 These are downloaded archives; tests never execute their installers. Binaries
 remain in ignored `test-data/real-installers/` because redistribution permission
 has not been established.
@@ -9,6 +9,20 @@ has not been established.
 | --- | --- | ---: | ---: |
 | [v6-16.json](v6-16.json) | `asus-soundmax-4570` | 9 | 54 |
 | [v17-plus.json](v17-plus.json) | `asus-realtek-lan-105` | 21 | 75 |
+| [v6-16.json](v6-16.json) | `kodensha-jbeijing7-124` | 16 | 130 |
+| [v17-plus.json](v17-plus.json) | `sony-sfcardviewer-264` | 26 | 20 |
+
+JBeijing7 contains application/dictionary payloads, a genuine Japanese CP932
+filename, and 11 valid members with previous-file links, including multi-step
+chains. It supplies real linked-member coverage and another producer's v6-16
+payloads. Format 16 does not establish v17+ non-ASCII UTF-16LE name coverage.
+
+SFCard Viewer provides that newer-format name evidence in the real file-group
+record `ｱﾌﾟﾘｹｰｼｮﾝ実行可能ﾌｧｲﾙ`, which references six valid members. Every
+member basename and directory name is ASCII; the tested non-ASCII string is the
+group name. The inventory records its exact UTF-8 representation and valid
+member indices. An archived official download is used because the original
+live URL now redirects to a web page.
 
 ## Fetch and run
 
@@ -16,7 +30,7 @@ Requires Python 3.11+, Rust, and a native linker. From the repository root:
 
 ```sh
 python3 scripts/real-installers.py fetch
-UNSHIELD_REQUIRE_REAL_INSTALLERS=asus-soundmax-4570,asus-realtek-lan-105 \
+UNSHIELD_REQUIRE_REAL_INSTALLERS=asus-soundmax-4570,asus-realtek-lan-105,kodensha-jbeijing7-124,sony-sfcardviewer-264 \
   cargo test --locked --test real_installers -- --nocapture
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
@@ -26,11 +40,18 @@ IDs before running Cargo. The environment variable makes missing required inputs
 fail. Without it, the Rust harness reports missing sample directories as skips.
 An existing but incomplete or corrupted sample directory fails verification.
 
-Inventories pin both ZIP and CAB/HDR SHA-256 values. `path` names a local input;
+Inventories pin both installer and CAB/HDR SHA-256 values. `path` names a local input;
 optional `archive_path` selects its location inside the ZIP. Only listed members
 are unpacked, and their hashes are checked before replacement. Preserve all
 listed numbered volumes even when one is empty. `engine32.cab` in the SoundMAX
 package is Microsoft CAB, not InstallShield CAB, and is outside this corpus.
+
+For `preparation.kind = embedded`, `offset` and `size` select verbatim CAB/HDR
+byte ranges within the hash-pinned installer. Each range is checked against the
+installer size and its own SHA-256 before replacing an input. The JBeijing and Sony
+launchers' member headers independently state those lengths. This preparation
+only reads bytes; it never runs an installer or invokes its extraction switches.
+Downloaded executables and extracted payloads are never launched by the harness.
 
 ## Independent expected results
 
@@ -82,7 +103,7 @@ and validity only: their placeholder names are not real filename evidence.
 
 ## C API validation
 
-After fetching both samples:
+After fetching all validated samples:
 
 ```sh
 cmake -S . -B build -DTEST_UPSTREAM_CLI=ON -DTEST_REAL_INSTALLERS=ON

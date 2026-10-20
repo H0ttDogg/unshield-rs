@@ -1,6 +1,6 @@
 # libunshield Rust port: status and task ownership
 
-Status snapshot: 2026-10-19, following pull of `dd26dcb` and real-installer validation.
+Status snapshot: 2026-10-19, including the real linked-member and Unicode-name follow-ups.
 
 ## Goal and current result
 
@@ -21,10 +21,23 @@ The expanded integration passed [CI at e8df8be](https://github.com/H0ttDogg/unsh
 evidence is recorded in
 [reports/real-installers.md](reports/real-installers.md).
 
+The Kodensha JBeijing7 1.24 update adds format-16 application/dictionary
+payloads, a genuine CP932 Japanese filename, and 11 valid previous-file links,
+including multi-step chains. All 130 valid members match independent C metadata
+and SHA-256 output through Rust and native/callback C shared, static, and installed
+libraries on Linux.
+
+Sony SFCard Viewer 2.6.4 adds format 26 with a genuine Japanese UTF-16LE
+file-group name referencing six valid members. All 20 valid members match the
+independent C reference through Rust and native/callback C shared, static, and
+installed libraries on Linux. Its file basenames and directory names are ASCII;
+the Unicode evidence is the referenced file-group record. The extended
+three-platform CI is configured but has not run.
+
 The existing four older upstream datasets still pass all 610 expected output
 hashes: Avigo Manager 51, Baldur's Gate patch 132, The Feeble Files Spanish 319,
-and Wireplay 108. Combined, this is 739 extracted-file content checks across six
-datasets/packages, not 739 installers.
+and Wireplay 108. Combined, this is 889 extracted-file content checks across eight
+datasets/packages, not 889 installers.
 
 Differential fuzzing remains deferred.
 
@@ -41,7 +54,7 @@ not imply that a named person has reviewed or signed off on it.
 | T4 | Repeatable corpus harness | Farhan | Shoib | Implemented: pinned fetch, independent expected JSON, Rust comparison, required-sample enforcement, tooling regression tests. |
 | T5 | Real-input C compatibility | Shoib | Farhan | Passed locally and on all three CI platforms: native I/O and callbacks, shared/static/installed libraries, every valid member. |
 | T6 | Compatibility fixes discovered by T2-T5 | Shoib | Farhan | No production mismatch found in selected real inputs; no parser/extractor fix needed. Farhan supplies regression tests for future failures. |
-| T7 | Cross-platform CI | Farhan | Shoib | Passed on Ubuntu/Windows/macOS with both packages required; original-C reproduction and relocated static pkg-config checks also passed on Ubuntu. Run linked above. |
+| T7 | Cross-platform CI | Farhan | Shoib | Existing two-package run passed on Ubuntu/Windows/macOS. The linked-member and Unicode-group samples are now required in the same matrix; execution of that extension is pending. |
 | T8 | Coverage report | Shoib | Farhan | Written: exact versions/counts, features, failures/skips, commands, and limitations. |
 | T9 | Focused callback Miri tests | Farhan | Shoib | Completed in pulled changes: three tests passed on 2026-10-17; original log and linked report retained. |
 | T10 | Review FFI assumptions against new tests | Shoib | Farhan | Table copying, userdata lifetime, directory-entry copying, cleanup, callback counts/offsets, and synchronization contract checked; boundary unchanged. Human cross-review pending. |
@@ -78,11 +91,17 @@ expectations requires an explicit sample ID.
 ## Checks completed locally
 
 - `cargo fmt --check` and `cargo clippy --all-targets -- -D warnings`.
-- All 34 Windows Rust integration tests, including all older corpus tests.
-- Both newer packages, all 129 valid member metadata/size/SHA-256 comparisons.
-- Three Python corpus-tool tests.
-- Original C reference built independently on Linux; both packages matched.
-- Windows shared/static CTest suites and installed C consumers, including callbacks.
+- All 35 Linux Rust integration tests, including all older corpus tests.
+- All four newer packages, 279 valid member metadata/size/SHA-256 comparisons.
+- Five Python corpus-tool tests, including safe embedded-input preparation.
+- Original C reference built independently on Linux; all four packages matched.
+- Linux shared/static CTest suites and installed C consumers, including callbacks.
+- Separate source-checkout reproduction, fresh CAB preparation, and a new Rust build.
+- Linux CLI listing, testing, and extraction for JBeijing7 and SFCard Viewer.
+
+Earlier Windows shared/static/installed checks and the three-platform CI cover
+the two ASUS packages. The new JBeijing7 and Sony samples have only been executed on Linux.
+See [the report and retained output](reports/real-installers.md).
 
 No new production unsafe code was introduced. The 2026-10-07 partial Miri run
 and 2026-10-17 focused callback run are documented in
@@ -98,18 +117,25 @@ still requires additional inputs; one package does not verify a whole version ra
 
 | ID | Next unit of work | Responsible | Reviewer | Completion check |
 | --- | --- | --- | --- | --- |
-| R1 | Reproduce the other person's sample and review evidence | Shoib and Farhan | Each other | Run the corpus guide from a clean checkout; record actual human review separately. |
-| T2-02 | Another producer's v6-16 CAB containing application/driver payloads | Shoib | Farhan | Complete inventory, independent expectations, every valid member compared. |
-| T3-02 | Another producer's v17+ CAB with non-ASCII names | Farhan | Shoib | Genuine non-ASCII names in valid records; Rust/C outputs and metadata match. |
+| R1 | Reproduce the other person's sample and review evidence | Shoib and Farhan | Each other | Automated reproduction completed in a separate source checkout with fresh CAB preparation, a new Rust build, original-C comparison, and native/callback C comparisons. Actual human cross-review remains pending. |
+| T2-02 | Another producer's v6-16 CAB containing application/driver payloads | Shoib | Farhan | Completed: `kodensha-jbeijing7-124`, format 16, all 130 valid members independently matched; actual application/dictionary payloads. Human review pending. |
+| T3-02 | Another producer's v17+ CAB with non-ASCII names | Farhan | Shoib | Completed: `sony-sfcardviewer-264`, format 26, genuine Japanese UTF-16LE file-group name referencing six valid members; all 20 valid members independently matched. File basenames remain ASCII. |
 | T2-03 | Real members split across volumes | Shoib | Farhan | A member actually crosses volumes; all pieces preserved and independently matched. |
-| T3-03 | Real obfuscated or linked members | Farhan | Shoib | Raw descriptor evidence and independent extraction for the claimed feature. |
+| T3-03 | Real obfuscated or linked members | Farhan | Shoib | Completed for links: JBeijing7 has 11 valid previous-file links, including chains; raw descriptors recorded and all 130 valid members matched independently. No real obfuscation coverage claimed. |
 | T6-N | One reproducible defect per task | Shoib | Farhan | Failing real input, focused regression, fix, original input and existing suite pass. |
 | F1 | Differential fuzzing | Deferred | Deferred | Separate later phase, excluded from current work. |
 
-Both current CAB sets contain compressed installer support resources, with no
-real non-ASCII, split, obfuscated, or linked members. Format 21 uses UTF-16LE
-storage but ASCII names. Generated fixtures cover additional features; those
-are not substitutes for real-format evidence.
+The two ASUS CAB sets contain compressed installer support resources. JBeijing7
+adds real payloads, narrow non-ASCII names, and linked members. No selected real
+sample contains split or obfuscated members. Sony format 26 adds a Japanese
+file-group name; format 21 has only ASCII names. Generated fixtures cover additional features; those are not
+substitutes for real-format evidence.
+
+Remaining implementation/validation work for Farhan: execute the extended CI.
+Shoib's T2-03 needs a real member crossing
+volumes. R1 and T10 still require human cross-review. T6-N applies when a
+reproducible defect is found; none was discovered in these four packages.
+F1 remains deferred.
 
 The Rust CLI is a convenience interface, not an exact reproduction of C CLI
 formatting/filtering/encoding. Windows rejects the samples' `<Support>` paths.

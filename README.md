@@ -157,9 +157,24 @@ cargo test --locked --test real_installers -- --nocapture
 ```
 
 Format 21 uses UTF-16LE storage, but neither sample contains non-ASCII names.
-Other versions and newer real split/obfuscated/linked member coverage remain open.
-CI requires both packages on Linux, macOS, and Windows, including C callbacks,
-and rebuilds the independent reference on Ubuntu. See the report for run evidence.
+A third vendor package, **JBeijing7 1.24 (format 16)**, adds **130 valid
+members**, application/dictionary payloads, a genuine Japanese CP932 filename,
+and **11 previous-file links**, including chains. Every member matches the
+independent C reference through Rust and native/callback C shared, static, and
+installed consumers on Linux. Corpus preparation reads hash-pinned byte ranges
+without executing its installer.
+
+A fourth package, **Sony SFCard Viewer 2.6.4 (format 26)**, adds a genuine
+Japanese UTF-16LE file-group name referencing six valid members. All **20**
+valid members match independent C metadata and SHA-256 output through Rust and
+native/callback C shared, static, and installed libraries on Linux. Member
+basenames and directories are ASCII; the non-ASCII evidence is the actual group
+name. Combined coverage is **889** file content checks across eight datasets/packages.
+
+Non-ASCII member basenames and real split/obfuscated member coverage remain open.
+CI requires all four packages on Linux, macOS, and Windows, including C callbacks,
+and rebuilds the independent reference on Ubuntu. The two added samples' CI execution
+is pending; the report distinguishes it from the existing two-package CI run.
 Compatibility
 is tied to the pinned header/API; this is not a claim of exhaustive compatibility
 with every InstallShield producer or undocumented format variant.

@@ -80,6 +80,155 @@
       },
       "review": "Automated local reproduction completed 2026-10-19. Human cross-review remains pending.",
       "feature_evidence": "Every valid descriptor has flags=0x0004 (compressed only), volume=1 and link_flags=0. data2.cab is an empty 512-byte volume. All valid members extract from data1.cab without external files. Names in valid files, directories, components and groups contain only ASCII characters."
+    },
+    {
+      "id": "sony-sfcardviewer-264",
+      "status": "validated",
+      "product": "Sony SFCard Viewer 2",
+      "release": "2.6.4 (2021-11-05)",
+      "source_url": "https://web.archive.org/web/20211127131418id_/https://www.sony.co.jp/Products/felica/consumer/support/download/driver/SFCardViewer/SFCardViewer2.exe",
+      "original_source_url": "https://www.sony.co.jp/Products/felica/consumer/support/download/driver/SFCardViewer/SFCardViewer2.exe",
+      "source_page": "https://web.archive.org/web/20230310050401/https://www.sony.co.jp/Products/felica/consumer/app/sfcardviewer2.html",
+      "retrieved": "2026-10-19",
+      "installer": {
+        "path": "installer.exe",
+        "sha256": "bb17f07066cf0dfa6ea4dedfce32c8db79a0c1c5e3a118584da44de194472c9b"
+      },
+      "redistribution": "Not established; fetch the archived original vendor download, do not bundle binaries.",
+      "preparation": {
+        "kind": "embedded",
+        "instructions": "Copy the three verbatim CAB/HDR byte ranges in inputs. Offsets are zero-based. The UTF-16LE launcher headers immediately preceding them state name, Disk1 path, version, and decimal byte count. Do not run the executable."
+      },
+      "inputs": [
+        {
+          "path": "data1.cab",
+          "offset": 965900,
+          "size": 862110,
+          "sha256": "af3bf40700fa51b60ed698cc48877247f836091e22e35c734f5c891b075fcc5d"
+        },
+        {
+          "path": "data1.hdr",
+          "offset": 1828090,
+          "size": 14360,
+          "sha256": "106014ebe76fd222b5a7a3a0ca94dc7f9a4dd16fd1c4c226c3daee4c53fd8ac9"
+        },
+        {
+          "path": "data2.cab",
+          "offset": 1842534,
+          "size": 2225285,
+          "sha256": "a9130ebf8ec2db3a21d3c9942d0a5539cae555cc2d79b62e44b66656ace595c6"
+        }
+      ],
+      "entry_cab": "data1.cab",
+      "version_file": "data1.hdr",
+      "raw_version": 67111464,
+      "major_version": 26,
+      "version_evidence": "ISc( signature, raw little-endian version 0x04000a28 at offset 4. Upstream high-byte-4 rule: 0x0a28 / 100 = 26; unshield_is_unicode returns true. Original header strings are UTF-16LE.",
+      "compression": "new",
+      "reference": {
+        "revision": "cbed3d19ef9cdf4e5fb86b9d65e48f1bf8d539db",
+        "build": "See corpus/README.md: separately built pinned original C static library and reference-members.",
+        "command": "python3 scripts/real-installers.py reference sony-sfcardviewer-264 --extractor build-reference/reference-members"
+      },
+      "expected": "corpus/expected/sony-sfcardviewer-264.json",
+      "expected_valid_members": 20,
+      "features": {
+        "unicode": "present",
+        "non_ascii_names": "present",
+        "split_volumes": "absent",
+        "compression": "present",
+        "obfuscation": "absent",
+        "links": "absent",
+        "external_files": "absent"
+      },
+      "feature_evidence": "File-group record 8 has the genuine Japanese name ｱﾌﾟﾘｹｰｼｮﾝ実行可能ﾌｧｲﾙ (UTF-16LE in the header, UTF-8 through C). It references six valid member records, indices 26, 27, 28, 29, 30, and 32 (record 31 is invalid). All file basenames and directory names are ASCII. Every valid descriptor is compressed-only flags=0x0004 with no link flags; volumes 1 and 2 contain whole members, not split members.",
+      "name_evidence": [
+        {
+          "group_index": 8,
+          "name": "ｱﾌﾟﾘｹｰｼｮﾝ実行可能ﾌｧｲﾙ",
+          "valid_members": [
+            26,
+            27,
+            28,
+            29,
+            30,
+            32
+          ]
+        }
+      ],
+      "descriptor_evidence": [
+        {
+          "index": 26,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 0,
+          "link_flags": 0
+        },
+        {
+          "index": 27,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 0,
+          "link_flags": 0
+        },
+        {
+          "index": 28,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 0,
+          "link_flags": 0
+        },
+        {
+          "index": 29,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 0,
+          "link_flags": 0
+        },
+        {
+          "index": 30,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 0,
+          "link_flags": 0
+        },
+        {
+          "index": 32,
+          "flags": 4,
+          "volume": 2,
+          "link_previous": 0,
+          "link_next": 0,
+          "link_flags": 0
+        }
+      ],
+      "limitations": [
+        "Unicode evidence is a referenced file-group name, not a non-ASCII file basename or directory.",
+        "The live original download URL now redirects to a web page; retrieval uses a specific archived official response.",
+        "No split, obfuscated, or linked member coverage is claimed."
+      ],
+      "results": {
+        "platform": "Linux x86_64 locally; Ubuntu/Windows/macOS CI configured, execution pending",
+        "commands": [
+          "python3 scripts/real-installers.py fetch sony-sfcardviewer-264",
+          "python3 scripts/real-installers.py reference sony-sfcardviewer-264 --extractor build-reference/reference-members",
+          "cargo test --locked --test real_installers -- --nocapture",
+          "ctest --test-dir build -C Release --output-on-failure",
+          "ctest --test-dir build-static -C Release --output-on-failure",
+          "ctest --test-dir build-consumer -C Release --output-on-failure"
+        ],
+        "status": "Passed locally: 20 valid members match independent C metadata, size, and SHA-256 through Rust and native/callback C shared, static, and installed libraries. The independent group record has a genuine Japanese name and contains six valid members; the harness checks these references even without downloaded inputs.",
+        "failures": [],
+        "skips": [],
+        "limitations": [
+          "The non-ASCII text belongs to a real file-group record, not member basenames or directory records.",
+          "Cross-platform CI execution is pending."
+        ]
+      }
     }
   ]
 }

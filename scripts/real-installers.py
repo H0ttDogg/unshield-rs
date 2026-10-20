@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Fetch CAB sets, verify the independent C reference, or check C ABI extraction."""
 import argparse
+from contextlib import nullcontext
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
@@ -83,9 +84,12 @@ def fetch(sample):
             verify(download, sample["installer"]["sha256"])
             download.replace(installer)
     verify(installer, sample["installer"]["sha256"])
-    if sample["preparation"]["kind"] != "zip":
-        raise ValueError("automatic fetch currently supports ZIP packages only; use recorded manual preparation")
-    with zipfile.ZipFile(installer) as archive:
+    kind = sample["preparation"]["kind"]
+    if kind not in ("zip", "embedded"):
+        raise ValueError(f"unsupported preparation kind: {kind}")
+    # Embedded inputs are verbatim byte ranges in a hash-pinned launcher.
+    # Never execute a downloaded installer, including its unpacking switches.
+    with (zipfile.ZipFile(installer) if kind == "zip" else nullcontext()) as archive:
         for item in sample["inputs"]:
             output = relative(directory, item["path"])
             if output.exists():
@@ -94,9 +98,28 @@ def fetch(sample):
             output.parent.mkdir(parents=True, exist_ok=True)
             with tempfile.TemporaryDirectory(dir=directory) as temporary:
                 unpacked = Path(temporary) / "member"
-                with archive.open(item.get("archive_path", item["path"])) as source, unpacked.open("wb") as target:
-                    while block := source.read(1024 * 1024):
+                if kind == "embedded":
+                    offset, size = item["offset"], item["size"]
+                    if (type(offset) is not int or type(size) is not int or
+                            offset < 0 or size <= 0 or offset + size > installer.stat().st_size):
+                        raise ValueError(f"invalid embedded input range: {item['path']}")
+                    source_file = installer.open("rb")
+                else:
+                    source_file = archive.open(item.get("archive_path", item["path"]))
+                    size = None
+                with source_file as source, unpacked.open("wb") as target:
+                    if kind == "embedded":
+                        source.seek(offset)
+                    remaining = size
+                    while remaining is None or remaining:
+                        block = source.read(1024 * 1024 if remaining is None else min(remaining, 1024 * 1024))
+                        if not block:
+                            if remaining:
+                                raise ValueError(f"truncated embedded input: {item['path']}")
+                            break
                         target.write(block)
+                        if remaining is not None:
+                            remaining -= len(block)
                 verify(unpacked, item["sha256"])
                 unpacked.replace(output)
     verify_inputs(sample, directory)
